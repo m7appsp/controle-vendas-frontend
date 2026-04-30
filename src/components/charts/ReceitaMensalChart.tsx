@@ -5,6 +5,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
 } from "recharts";
 
 import type { Venda } from "../../features/vendas/domain/Venda";
@@ -14,20 +15,24 @@ type Props = {
 };
 
 function mesLabel(ano: number, mes: number) {
-  return new Date(ano, mes).toLocaleString("pt-BR", { month: "short" });
+  return new Date(ano, mes).toLocaleString("pt-BR", {
+    month: "short",
+  });
 }
 
 export default function ReceitaMensalChart({ vendas }: Props) {
   const mapa = new Map<string, number>();
 
-  vendas.forEach((v) => {
-    const d = new Date(v.data);
-    const key = `${d.getFullYear()}-${d.getMonth()}`;
-    mapa.set(key, (mapa.get(key) || 0) + v.valor);
+  vendas.forEach((venda) => {
+    const data = new Date(venda.data);
+    const key = `${data.getFullYear()}-${data.getMonth()}`;
+
+    mapa.set(key, (mapa.get(key) || 0) + venda.valor);
   });
 
   const data = Array.from(mapa.entries()).map(([key, total]) => {
     const [ano, mes] = key.split("-").map(Number);
+
     return {
       mes: mesLabel(ano, mes),
       total,
@@ -35,15 +40,36 @@ export default function ReceitaMensalChart({ vendas }: Props) {
   });
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow">
-      <h3 className="font-semibold mb-4">Receita mensal</h3>
-
-      <ResponsiveContainer width="100%" height={300}>
+    <div className="w-full h-[320px]">
+      <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>
-          <XAxis dataKey="mes" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="total" fill="#16a34a" />
+          <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+
+          <XAxis
+            dataKey="mes"
+            stroke="#94a3b8"
+            tick={{ fill: "#94a3b8", fontSize: 12 }}
+          />
+
+          <YAxis
+            stroke="#94a3b8"
+            tick={{ fill: "#94a3b8", fontSize: 12 }}
+          />
+
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#0f172a",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "14px",
+              color: "#fff",
+            }}
+          />
+
+          <Bar
+            dataKey="total"
+            fill="#06b6d4"
+            radius={[8, 8, 0, 0]}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

@@ -6,16 +6,14 @@ type Props = {
 
 export default function MainLayout({ children }: Props) {
   return (
-    <div className="flex h-screen bg-[#f4f6fb]">
-
+    <div className="flex h-screen bg-[#020617] text-white">
       {/* SIDEBAR */}
       <Sidebar />
 
       {/* CONTEÚDO */}
-      <main className="flex-1 overflow-auto p-6">
+      <main className="flex-1 overflow-auto p-6 bg-[#020617]">
         {children}
       </main>
-
     </div>
   );
 }

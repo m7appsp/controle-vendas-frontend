@@ -5,6 +5,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
 } from "recharts";
 
 import type { Venda } from "../../features/vendas/domain/Venda";
@@ -16,7 +17,7 @@ type Props = {
 export default function VendasPorDiaChart({ vendas }: Props) {
   const dataPorDia = Object.values(
     vendas.reduce((acc, venda) => {
-      const dia = new Date(venda.data).toLocaleDateString();
+      const dia = new Date(venda.data).toLocaleDateString("pt-BR");
 
       if (!acc[dia]) {
         acc[dia] = { dia, total: 0 };
@@ -28,19 +29,38 @@ export default function VendasPorDiaChart({ vendas }: Props) {
   );
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow">
-      <h3 className="font-semibold mb-4">Vendas por dia</h3>
-
-      <ResponsiveContainer width="100%" height={300}>
+    <div className="w-full h-[320px]">
+      <ResponsiveContainer width="100%" height="100%">
         <LineChart data={dataPorDia}>
-          <XAxis dataKey="dia" />
-          <YAxis />
-          <Tooltip />
+          <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+
+          <XAxis
+            dataKey="dia"
+            stroke="#94a3b8"
+            tick={{ fill: "#94a3b8", fontSize: 12 }}
+          />
+
+          <YAxis
+            stroke="#94a3b8"
+            tick={{ fill: "#94a3b8", fontSize: 12 }}
+          />
+
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#0f172a",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "14px",
+              color: "#fff",
+            }}
+          />
+
           <Line
             type="monotone"
             dataKey="total"
-            stroke="#2563eb"
-            strokeWidth={2}
+            stroke="#06b6d4"
+            strokeWidth={3}
+            dot={{ fill: "#06b6d4", r: 4 }}
+            activeDot={{ r: 6 }}
           />
         </LineChart>
       </ResponsiveContainer>

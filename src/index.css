@@ -1,30 +1,51 @@
-html, body, #root {
-  height: 100%;
-  background: #0b1220;
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* RESET TOTAL */
+/* RESET GLOBAL */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* FORÇA OCUPAR TELA TODA */
-html, body, #root {
+/* ROOT */
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
+  background: #020617;
+  color: white;
+  font-family: Inter, sans-serif;
 }
 
-/* REMOVE QUALQUER SCROLL LATERAL */
+/* BODY */
 body {
   overflow-x: hidden;
+  overflow-y: auto;
+  background: #020617;
 }
 
+/* SCROLLBAR PREMIUM */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #164e63;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0891b2;
+}
+
+/* ANIMAÇÃO */
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -34,4 +55,71 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* DAY PICKER / CALENDÁRIO */
+.rdp {
+  --rdp-cell-size: 42px;
+  --rdp-accent-color: #2563eb;
+  --rdp-background-color: transparent;
+
+  margin: 0 auto;
+  color: white;
+  background: transparent !important;
+}
+
+.rdp-months {
+  display: flex;
+  justify-content: center;
+}
+
+.rdp-month {
+  background: transparent !important;
+}
+
+.rdp-table {
+  width: 100%;
+}
+
+.rdp-head_cell {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rdp-caption_label {
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.rdp-button {
+  color: white;
+  border-radius: 12px;
+}
+
+.rdp-day {
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.rdp-day:hover {
+  background: rgba(6, 182, 212, 0.15);
+}
+
+.rdp-day_selected,
+.rdp-day_selected:focus,
+.rdp-day_selected:hover {
+  background: #2563eb !important;
+  color: white !important;
+  box-shadow: 0 0 18px rgba(37, 99, 235, 0.55);
+}
+
+.rdp-nav_button {
+  color: #06b6d4 !important;
+  background: transparent !important;
+}
+
+.rdp-nav_button:hover {
+  background: rgba(6, 182, 212, 0.08) !important;
 }

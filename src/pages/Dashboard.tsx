@@ -1,100 +1,245 @@
-import { useVendas } from "../features/vendas/context/VendasContext";
+import { useState } from "react";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
 
+import {
+  DollarSign,
+  TrendingUp,
+  Users,
+  CalendarDays,
+  Target,
+  Bell,
+  ChevronDown,
+} from "lucide-react";
+
+import { useVendas } from "../features/vendas/context/VendasContext";
 import {
   receitaHoje,
   receitaSemana,
   receitaMes,
   receitaAno,
-  crescimentoMensal,
   clientesUnicos,
 } from "../features/vendas/services/calculos";
 
 import VendasPorDiaChart from "../components/charts/VendasPorDiaChart";
 import ReceitaMensalChart from "../components/charts/ReceitaMensalChart";
-
 import { formatMoeda } from "../utils/format";
 
 function Dashboard() {
   const { vendas } = useVendas();
 
-  const hoje = receitaHoje(vendas);
-  const semana = receitaSemana(vendas);
-  const mes = receitaMes(vendas);
-  const ano = receitaAno(vendas);
-  const crescimento = crescimentoMensal(vendas);
-  const clientes = clientesUnicos(vendas);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    new Date()
+  );
+
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+
+  const vendasFiltradas = vendas.filter((venda) => {
+    const data = new Date(venda.data);
+
+    return (
+      data.getMonth() === selectedMonth.getMonth() &&
+      data.getFullYear() === selectedMonth.getFullYear()
+    );
+  });
+
+  const hoje = receitaHoje(vendasFiltradas);
+  const semana = receitaSemana(vendasFiltradas);
+  const mes = receitaMes(vendasFiltradas);
+  const ano = receitaAno(vendasFiltradas);
+  const clientes = clientesUnicos(vendasFiltradas);
+
+  function alterarMes(direcao: number) {
+    const novaData = new Date(selectedMonth);
+    novaData.setMonth(novaData.getMonth() + direcao);
+    setSelectedMonth(novaData);
+  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="text-gray-500">Visão geral das vendas</p>
+    <div className="min-h-screen w-full bg-[#020617] text-white p-6 space-y-6">
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Olá Marcelo 
+          </h1>
+
+          <p className="text-slate-400 text-sm mt-1">
+            Resumo Comercial •{" "}
+            {selectedMonth.toLocaleString("pt-BR", {
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* SELETOR PREMIUM */}
+          <div
+            className="
+              flex items-center gap-3
+              px-4 py-3
+              rounded-2xl
+              bg-[#0f172a]
+              border border-white/10
+              shadow-lg
+            "
+          >
+            <button
+              onClick={() => alterarMes(-1)}
+              className="text-slate-400 hover:text-cyan-400 transition"
+            >
+              ‹
+            </button>
+
+            <CalendarDays size={18} className="text-cyan-400" />
+
+            <span className="text-sm font-medium capitalize min-w-[120px] text-center">
+              {selectedMonth.toLocaleString("pt-BR", {
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+
+            <ChevronDown size={16} className="text-slate-500" />
+
+            <button
+              onClick={() => alterarMes(1)}
+              className="text-slate-400 hover:text-cyan-400 transition"
+            >
+              ›
+            </button>
+          </div>
+
+          {/* SINO DIREITA */}
+          <button
+            className="
+              relative
+              p-3
+              rounded-2xl
+              bg-[#0f172a]
+              border border-white/10
+              hover:border-cyan-400/30
+              transition
+            "
+          >
+            <Bell size={20} className="text-cyan-400" />
+
+            <span
+              className="
+                absolute -top-1 -right-1
+                w-5 h-5 rounded-full
+                bg-red-500 text-white text-xs
+                flex items-center justify-center
+              "
+            >
+              1
+            </span>
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card title="Receita Hoje" value={formatMoeda(hoje)} />
-        <Card title="Receita Semana" value={formatMoeda(semana)} />
-        <Card title="Receita Mês" value={formatMoeda(mes)} />
-        <Card title="Clientes" value={clientes} />
+      {/* CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+        <StatCard
+          title="Receita Hoje"
+          value={formatMoeda(hoje)}
+          icon={<DollarSign size={20} />}
+        />
+        <StatCard
+          title="Receita Semana"
+          value={formatMoeda(semana)}
+          icon={<TrendingUp size={20} />}
+        />
+        <StatCard
+          title="Receita Mês"
+          value={formatMoeda(mes)}
+          icon={<Target size={20} />}
+        />
+        <StatCard
+          title="Clientes"
+          value={clientes}
+          icon={<Users size={20} />}
+        />
+        <StatCard
+          title="Receita Anual"
+          value={formatMoeda(ano)}
+          icon={<TrendingUp size={20} />}
+        />
       </div>
 
-      <div className="bg-white rounded-xl shadow p-4">
-        <p className="text-sm text-gray-500">Crescimento mensal</p>
-        <p className="text-2xl font-bold">{crescimento.toFixed(1)}%</p>
-        <p className="text-xs text-gray-400 mt-1">
-          Receita anual: {formatMoeda(ano)}
-        </p>
+      
+             {/* CHART + CALENDÁRIO */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 rounded-3xl border border-white/10 bg-gradient-to-br from-[#081028] to-[#0f172a] p-6 shadow-[0_0_35px_rgba(6,182,212,0.05)]">
+          <h2 className="text-lg font-semibold mb-4">Vendas por dia</h2>
+          <VendasPorDiaChart vendas={vendasFiltradas} />
+        </div>
+
+        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#081028] to-[#0f172a] p-6 shadow-[0_0_35px_rgba(6,182,212,0.05)]">
+          <div className="flex items-center gap-2 mb-4">
+            <CalendarDays className="text-cyan-400" size={18} />
+            <h2 className="font-semibold">Calendário Inteligente</h2>
+          </div>
+
+          <DayPicker
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+          />
+
+          <div className="mt-5 space-y-3">
+            <ResumoCard label="Receita do Dia" value={formatMoeda(hoje)} />
+            <ResumoCard label="Receita Semana" value={formatMoeda(semana)} />
+            <ResumoCard label="Receita Mês" value={formatMoeda(mes)} />
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <VendasPorDiaChart vendas={vendas} />
-        <ReceitaMensalChart vendas={vendas} />
-      </div>
-
-      <div className="bg-white rounded-xl shadow p-4">
-        <h2 className="text-lg font-semibold mb-4">Últimas Vendas</h2>
-
-        {vendas.length === 0 ? (
-          <p className="text-gray-500">Nenhuma venda registrada.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-2">Produto</th>
-                <th className="text-left py-2">Cliente</th>
-                <th className="text-right py-2">Valor</th>
-                <th className="text-right py-2">Data</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vendas
-                .slice()
-                .reverse()
-                .map((venda) => (
-                  <tr key={venda.id} className="border-b last:border-0">
-                    <td className="py-2">{venda.produto}</td>
-                    <td className="py-2">{venda.clienteNome}</td>
-                    <td className="py-2 text-right">
-                      {formatMoeda(venda.valor)}
-                    </td>
-                    <td className="py-2 text-right">
-                      {new Date(venda.data).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        )}
+      {/* RECEITA */}
+      <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#081028] to-[#0f172a] p-6 shadow-[0_0_35px_rgba(6,182,212,0.05)]">
+        <h2 className="text-lg font-semibold mb-4">Receita mensal</h2>
+        <ReceitaMensalChart vendas={vendasFiltradas} />
       </div>
     </div>
   );
 }
 
-function Card({ title, value }: { title: string; value: any }) {
+function StatCard({
+  title,
+  value,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+}) {
   return (
-    <div className="bg-white rounded-xl shadow p-4">
-      <p className="text-sm text-gray-500">{title}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
+    <div className="relative overflow-hidden rounded-3xl border border-cyan-500/10 bg-gradient-to-br from-[#081028] to-[#0f172a] p-5 shadow-[0_0_35px_rgba(6,182,212,0.08)] hover:shadow-[0_0_45px_rgba(6,182,212,0.18)] transition-all duration-300 hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-slate-400">{title}</span>
+
+        <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-400/10">
+          {icon}
+        </div>
+      </div>
+
+      <h3 className="text-3xl font-bold mt-6">{value}</h3>
+    </div>
+  );
+}
+
+function ResumoCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex justify-between items-center bg-white/5 border border-white/5 rounded-xl px-4 py-3">
+      <span className="text-slate-400">{label}</span>
+      <span className="text-cyan-400 font-semibold">{value}</span>
     </div>
   );
 }

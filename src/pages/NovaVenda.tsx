@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuid } from "uuid";
+import { Save, ShoppingBag } from "lucide-react";
 
 import { useVendas } from "../features/vendas/context/VendasContext";
 
@@ -12,11 +13,12 @@ function NovaVenda() {
   const [valor, setValor] = useState("");
   const [clienteNome, setClienteNome] = useState("");
   const [clienteCpf, setClienteCpf] = useState("");
+  const [categoria, setCategoria] = useState("Pos");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!produto || !valor || !clienteNome) {
+    if (!produto || !valor || !clienteNome || !categoria) {
       alert("Preencha os campos obrigatórios");
       return;
     }
@@ -28,79 +30,128 @@ function NovaVenda() {
       data: new Date().toISOString(),
       clienteNome,
       clienteCpf: clienteCpf || undefined,
+      categoria,
     });
 
-    // Limpa formulário
     setProduto("");
     setValor("");
     setClienteNome("");
     setClienteCpf("");
+    setCategoria("Pos");
 
-    // Volta para o dashboard
     navigate("/");
   }
 
   return (
-    <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
-      <h1 className="text-2xl font-semibold mb-6">Nova Venda</h1>
+    <div className="min-h-screen bg-[#020617] text-white p-6">
+      <div className="max-w-2xl mx-auto rounded-3xl border border-white/10 bg-gradient-to-br from-[#081028] to-[#0f172a] p-8 shadow-[0_0_35px_rgba(6,182,212,0.06)]">
+        <h1 className="text-3xl font-bold flex items-center gap-3 mb-8">
+          <ShoppingBag className="text-cyan-400" />
+          Nova Venda
+        </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* PRODUTO */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Produto</label>
-          <input
-            type="text"
-            className="w-full border rounded p-2"
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <InputField
+            label="Produto"
             value={produto}
-            onChange={(e) => setProduto(e.target.value)}
+            onChange={setProduto}
           />
-        </div>
 
-        {/* VALOR */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Valor</label>
-          <input
-            type="number"
-            step="0.01"
-            className="w-full border rounded p-2"
+          <InputField
+            label="Valor"
             value={valor}
-            onChange={(e) => setValor(e.target.value)}
+            onChange={setValor}
+            type="number"
           />
-        </div>
 
-        {/* CLIENTE */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Cliente</label>
-          <input
-            type="text"
-            className="w-full border rounded p-2"
+          <InputField
+            label="Cliente"
             value={clienteNome}
-            onChange={(e) => setClienteNome(e.target.value)}
+            onChange={setClienteNome}
           />
-        </div>
 
-        {/* CPF (opcional) */}
-        <div>
-          <label className="block text-sm font-medium mb-1">CPF (opcional)</label>
-          <input
-            type="text"
-            className="w-full border rounded p-2"
+          <InputField
+            label="CPF (opcional)"
             value={clienteCpf}
-            onChange={(e) => setClienteCpf(e.target.value)}
+            onChange={setClienteCpf}
           />
-        </div>
 
-        {/* BOTÃO */}
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          Salvar Venda
-        </button>
-      </form>
+          <div className="space-y-2">
+            <label className="text-sm text-slate-400">Categoria</label>
+
+            <select
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+              className="
+                w-full
+                px-4 py-4
+                rounded-2xl
+                bg-[#020617]
+                border border-white/10
+                text-white
+                outline-none
+                focus:border-cyan-400
+              "
+            >
+              <option>Pos</option>
+              <option>Residencial</option>
+              <option>Aparelhos</option>
+              <option>Acessórios</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            className="
+              w-full
+              flex items-center justify-center gap-2
+              bg-cyan-500 hover:bg-cyan-400
+              text-black font-semibold
+              py-4 rounded-2xl
+              transition
+            "
+          >
+            <Save size={18} />
+            Salvar Venda
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function InputField({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm text-slate-400">{label}</label>
+
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="
+          w-full
+          px-4 py-4
+          rounded-2xl
+          bg-[#020617]
+          border border-white/10
+          text-white
+          outline-none
+          focus:border-cyan-400
+        "
+      />
     </div>
   );
 }
 
 export default NovaVenda;
-``
