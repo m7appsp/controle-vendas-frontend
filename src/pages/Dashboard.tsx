@@ -7,7 +7,6 @@ import {
   TrendingUp,
   Users,
   CalendarDays,
-  Target,
   Bell,
   ChevronDown,
 } from "lucide-react";
@@ -49,9 +48,9 @@ function Dashboard() {
   const ano = receitaAno(vendasFiltradas);
   const clientes = clientesUnicos(vendasFiltradas);
 
-  function alterarMes(direcao: number) {
+  function alterarMes(valor: number) {
     const novaData = new Date(selectedMonth);
-    novaData.setMonth(novaData.getMonth() + direcao);
+    novaData.setMonth(novaData.getMonth() + valor);
     setSelectedMonth(novaData);
   }
 
@@ -61,7 +60,7 @@ function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">
-            Olá Marcelo 
+            Painel Comercial
           </h1>
 
           <p className="text-slate-400 text-sm mt-1">
@@ -74,7 +73,7 @@ function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* SELETOR PREMIUM */}
+          {/* SELETOR MÊS */}
           <div
             className="
               flex items-center gap-3
@@ -111,7 +110,7 @@ function Dashboard() {
             </button>
           </div>
 
-          {/* SINO DIREITA */}
+          {/* SINO */}
           <button
             className="
               relative
@@ -140,36 +139,33 @@ function Dashboard() {
       </div>
 
       {/* CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
         <StatCard
           title="Receita Hoje"
           value={formatMoeda(hoje)}
           icon={<DollarSign size={20} />}
         />
+
         <StatCard
           title="Receita Semana"
           value={formatMoeda(semana)}
           icon={<TrendingUp size={20} />}
         />
+
         <StatCard
           title="Receita Mês"
           value={formatMoeda(mes)}
-          icon={<Target size={20} />}
+          icon={<DollarSign size={20} />}
         />
+
         <StatCard
           title="Clientes"
           value={clientes}
           icon={<Users size={20} />}
         />
-        <StatCard
-          title="Receita Anual"
-          value={formatMoeda(ano)}
-          icon={<TrendingUp size={20} />}
-        />
       </div>
 
-      
-             {/* CHART + CALENDÁRIO */}
+      {/* CHART + CALENDÁRIO */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 rounded-3xl border border-white/10 bg-gradient-to-br from-[#081028] to-[#0f172a] p-6 shadow-[0_0_35px_rgba(6,182,212,0.05)]">
           <h2 className="text-lg font-semibold mb-4">Vendas por dia</h2>
@@ -196,7 +192,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* RECEITA */}
+      {/* RECEITA MENSAL */}
       <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#081028] to-[#0f172a] p-6 shadow-[0_0_35px_rgba(6,182,212,0.05)]">
         <h2 className="text-lg font-semibold mb-4">Receita mensal</h2>
         <ReceitaMensalChart vendas={vendasFiltradas} />
