@@ -55,7 +55,12 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#020617] text-white p-6 space-y-6">
+   
+h1 className="text-2xl font-semibold">
+  Dashboard atualizado
+</h1>
+
+ <div className="min-h-screen w-full bg-[#020617] text-white p-6 space-y-6">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
