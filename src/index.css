@@ -14,7 +14,7 @@ html,
 body,
 #root {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   background: #020617;
   color: white;
   font-family: Inter, sans-serif;
@@ -25,9 +25,23 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   background: #020617;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* SCROLLBAR PREMIUM */
+/* LINKS */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* IMAGENS */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* SCROLLBAR */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -49,7 +63,7 @@ body {
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(25px);
+    transform: translateY(22px);
   }
   to {
     opacity: 1;
@@ -57,15 +71,24 @@ body {
   }
 }
 
-/* DAY PICKER / CALENDÁRIO */
+/* CLASSE UTILITÁRIA */
+.fade-up {
+  animation: fadeUp 0.45s ease forwards;
+}
+
+/* =========================================
+   DAY PICKER / CALENDÁRIO PREMIUM
+========================================= */
+
 .rdp {
-  --rdp-cell-size: 42px;
+  --rdp-cell-size: 36px;
   --rdp-accent-color: #2563eb;
   --rdp-background-color: transparent;
 
   margin: 0 auto;
   color: white;
   background: transparent !important;
+  font-size: 14px;
 }
 
 .rdp-months {
@@ -77,49 +100,92 @@ body {
   background: transparent !important;
 }
 
-.rdp-table {
-  width: 100%;
-}
-
-.rdp-head_cell {
-  color: #94a3b8;
-  font-size: 12px;
-  font-weight: 500;
+.rdp-caption {
+  margin-bottom: 12px;
 }
 
 .rdp-caption_label {
   color: white;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
 }
 
-.rdp-button {
-  color: white;
-  border-radius: 12px;
+.rdp-head_row {
+  margin-bottom: 8px;
 }
 
+.rdp-head_cell {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.rdp-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px;
+}
+
+.rdp-row {
+  margin-top: 4px;
+}
+
+.rdp-cell {
+  text-align: center;
+}
+
+.rdp-button,
 .rdp-day {
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: white;
+  font-weight: 500;
   transition: all 0.2s ease;
 }
 
-.rdp-day:hover {
-  background: rgba(6, 182, 212, 0.15);
+.rdp-day:hover,
+.rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .rdp-day_selected,
-.rdp-day_selected:focus,
-.rdp-day_selected:hover {
+.rdp-day_selected:hover,
+.rdp-day_selected:focus {
   background: #2563eb !important;
   color: white !important;
-  box-shadow: 0 0 18px rgba(37, 99, 235, 0.55);
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(37, 99, 235, 0.45);
+}
+
+/* hoje */
+.rdp-day_today {
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+/* navegação */
+.rdp-nav {
+  display: flex;
+  gap: 8px;
 }
 
 .rdp-nav_button {
   color: #06b6d4 !important;
   background: transparent !important;
+  border-radius: 10px;
+  transition: all 0.2s ease;
 }
 
 .rdp-nav_button:hover {
   background: rgba(6, 182, 212, 0.08) !important;
+}
+
+/* dias fora do mês */
+.rdp-day_outside {
+  opacity: 0.3;
+}
+
+/* disabled */
+.rdp-day_disabled {
+  opacity: 0.2;
 }
