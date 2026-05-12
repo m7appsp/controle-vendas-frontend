@@ -6,15 +6,24 @@ const normalizarTexto = (texto: string = "") =>
 
 const mapearServicoParaGrupo = (servico: string) => {
   const s = normalizarTexto(servico);
+
   if (["pos titular", "controle", "migra pos", "migra controle"].includes(s))
-    return "pos";
-  if (["virtua", "tv box", "tv trade"].includes(s)) return "residencial";
-  if (s === "aparelho") return "aparelhos";
+    return "pos_total";
+
+  if (["virtua", "tv box", "tv trade"].includes(s))
+    return "residencial";
+
+  if (s === "aparelho") return "aparelho";
   if (s === "acessorios") return "acessorios";
+
   return "outros";
 };
 
-export function useDashboardData(mes: number, ano: number, diaSelecionado?: Date) {
+export function useDashboardData(
+  mes: number,
+  ano: number,
+  diaSelecionado?: Date
+) {
   const [dados, setDados] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
@@ -24,71 +33,103 @@ export function useDashboardData(mes: number, ano: number, diaSelecionado?: Date
         .from("vendas_individuais")
         .select("*");
 
-      const hoje = diaSelecionado ?? new Date();
+      const { data: metasData } = await supabase
+        .from("metas")
+        .select("*")
+        .eq("mes", mes)
+        .eq("ano", ano);
 
-      const vendasDia = data.filter((v: any) => {
-        const d = new Date(v.data);
-        return d.toDateString() === hoje.toDateString();
+      /* ======================
+         KPI MÊS
+      ====================== */
+
+      let receitaTotal = 0;
+      let pos = 0;
+      let residencial = 0;
+      let aparelhos = 0;
+      let acessorios = 0;
+
+      data.forEach((v: any) => {
+        receitaTotal += Number(v.receita || 0);
+
+        const grupo = mapearServicoParaGrupo(v.servico);
+
+        if (grupo === "pos_total") pos += Number(v.quantidade || 0);
+        if (grupo === "residencial") residencial += Number(v.quantidade || 0);
+        if (grupo === "aparelho") aparelhos += Number(v.quantidade || 0);
+        if (grupo === "acessorios") acessorios += Number(v.quantidade || 0);
       });
 
-      const vendasMes = data.filter((v: any) => {
-        const d = new Date(v.data);
-        return d.getMonth() === mes - 1 && d.getFullYear() === ano;
-      });
+      /* ======================
+         METAS
+      ====================== */
 
-      const receitaDia = vendasDia.reduce(
-        (s: number, v: any) => s + Number(v.receita || 0),
-        0
-      );
+      const getMeta = (servico: string) => {
+        return (
+          metasData?.find((m: any) => m.servico === servico)
+            ?.valor_meta || 0
+        );
+      };
 
-      const receitaMes = vendasMes.reduce(
-        (s: number, v: any) => s + Number(v.receita || 0),
-        0
-      );
+      const metaReceita = getMeta("receita_total");
 
-      const diasDecorridos = hoje.getDate();
-      const mediaDiariaMes = receitaMes / Math.max(diasDecorridos, 1);
+      /* ======================
+         PROJEÇÃO
+      ====================== */
 
-      const insights: any[] = [];
+      const hoje = new Date();
+      const diaAtual = hoje.getDate();
+      const diasNoMes = new Date(ano, mes, 0).getDate();
 
-      if (receitaDia > mediaDiariaMes) {
+      const media = receitaTotal / Math.max(diaAtual, 1);
+      const projecaoFinal = media * diasNoMes;
+
+      const falta = metaReceita - receitaTotal;
+
+      const metaDia =
+        falta > 0 ? Math.floor(falta / (diasNoMes - diaAtual)) : 0;
+
+      const vaiBaterMeta = projecaoFinal >= metaReceita;
+
+      /* ======================
+         INSIGHTS
+      ====================== */
+
+      const insights = [];
+
+      if (projecaoFinal >= metaReceita) {
         insights.push({
           tipo: "positivo",
-          mensagem: "Hoje você está acima da média diária do mês.",
+          mensagem: "Você está no caminho para bater a meta.",
         });
       } else {
         insights.push({
           tipo: "alerta",
           mensagem:
-            "Hoje o ritmo de vendas está abaixo da média diária do mês.",
+            "Ritmo atual está abaixo do necessário para atingir a meta.",
         });
       }
 
-      const categorias = ["pos", "residencial", "aparelhos", "acessorios"];
-
-      categorias.forEach((cat) => {
-        const diaCat = vendasDia.filter(
-          (v: any) => mapearServicoParaGrupo(v.servico) === cat
-        ).length;
-
-        const mesCat =
-          vendasMes.filter(
-            (v: any) => mapearServicoParaGrupo(v.servico) === cat
-          ).length / Math.max(diasDecorridos, 1);
-
-        if (diaCat < mesCat) {
-          insights.push({
-            tipo: "negativo",
-            mensagem: `${cat.toUpperCase()} está abaixo da média do mês.`,
-          });
-        }
-      });
+      /* ======================
+         SET FINAL
+      ====================== */
 
       setDados({
-        vendasIndividuais: data,
-        receitaDia,
-        receitaMes,
+        receitaTotal,
+        pos,
+        residencial,
+        aparelhos,
+        acessorios,
+
+        metaReceita,
+
+        projecaoFinal,
+        metaDia,
+        vaiBaterMeta,
+
         insights,
+
+        vendasIndividuais: data,
       });
 
       setLoading(false);
