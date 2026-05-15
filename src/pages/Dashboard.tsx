@@ -31,12 +31,9 @@ export default function Dashboard() {
     acessorios,
     vendasIndividuais,
 
-    receitaAtual,
-    receitaPassado,
-
-    metaMensal,
+    metaReceita,
     projecaoFinal,
-    metaPorDia,
+    metaDia,
     vaiBaterMeta,
 
     insights,
@@ -50,30 +47,41 @@ export default function Dashboard() {
   );
 
   if (loading) {
-    return <div className="p-6 text-white">Carregando…</div>;
+    return <div className="p-6 text-white">Carregando...</div>;
   }
 
   if (erro) {
     return <div className="p-6 text-red-500">{erro}</div>;
   }
 
+  /* ======================
+     DADOS DO DIA
+  ====================== */
+
   const vendasDoDia =
-    vendasIndividuais?.filter((v) => {
+    vendasIndividuais?.filter((v: any) => {
       const d = new Date(v.data);
       return d.toDateString() === diaSelecionado.toDateString();
     }) || [];
 
   const receitaDia = vendasDoDia.reduce(
-    (acc, v) => acc + Number(v.receita || 0),
+    (acc: number, v: any) => acc + Number(v.receita || 0),
     0
   );
+
+  /* ======================
+     RENDER
+  ====================== */
 
   return (
     <div className="min-h-screen bg-[#020617] text-white p-6 space-y-8">
 
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-bold">Olá Marcelo</h1>
+        <h1 className="text-3xl font-bold">
+          Painel de Análise
+        </h1>
+
         <p className="text-slate-400 mt-1">
           Resumo Comercial •{" "}
           {hoje.toLocaleDateString("pt-BR", {
@@ -83,26 +91,47 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* ================= CARDS ================= */}
+      {/* CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+
         <StatCard
           title="Receita Total"
           value={formatMoeda(receitaTotal)}
           icon={<Wallet />}
-          meta={metaMensal}
+          meta={metaReceita}
           realizado={receitaTotal}
         />
 
-        <StatCard title="Pós" value={pos} icon={<Smartphone />} />
-        <StatCard title="Residencial" value={residencial} icon={<Wifi />} />
-        <StatCard title="Aparelhos" value={aparelhos} icon={<MonitorSmartphone />} />
-        <StatCard title="Acessórios" value={acessorios} icon={<Headphones />} />
+        <StatCard
+          title="Pós"
+          value={pos}
+          icon={<Smartphone />}
+        />
+
+        <StatCard
+          title="Residencial"
+          value={residencial}
+          icon={<Wifi />}
+        />
+
+        <StatCard
+          title="Aparelhos"
+          value={aparelhos}
+          icon={<MonitorSmartphone />}
+        />
+
+        <StatCard
+          title="Acessórios"
+          value={acessorios}
+          icon={<Headphones />}
+        />
+
       </div>
 
-      {/* ================= ZONA PRINCIPAL ================= */}
+      {/* BLOCO PRINCIPAL */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-        {/* DISTRIBUIÇÃO DE RECEITA */}
+        {/* DISTRIBUIÇÃO */}
         <div className="bg-[#0b1220] rounded-3xl border border-white/10 p-6">
           <DistribuicaoReceita
             pos={pos}
@@ -121,8 +150,9 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* DIA SELECIONADO */}
+        {/* DIA */}
         <div className="bg-white text-blue-600 rounded-3xl p-6 flex flex-col justify-between">
+
           <div>
             <p className="text-xs uppercase text-blue-400">
               Dia selecionado
@@ -153,35 +183,34 @@ export default function Dashboard() {
               Visualizando dados do dia selecionado
             </p>
           </div>
+
         </div>
 
       </div>
 
-      {/* ================= COMPARATIVO ================= */}
+      {/* COMPARATIVO + META */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
         <div className="xl:col-span-2 bg-[#0b1220] rounded-3xl border border-white/10 p-6 min-h-[350px]">
+
           <h2 className="text-lg font-semibold mb-4">
             Comparativo do mês
           </h2>
 
-          <ComparativoMensalChart
-            atual={receitaAtual}
-            passado={receitaPassado}
-          />
+          <ComparativoMensalChart />
+
         </div>
 
-        {/* PROJEÇÃO DE META */}
         <MetaInsight
-          meta={metaMensal}
+          meta={metaReceita}
           projecao={projecaoFinal}
-          diaria={metaPorDia}
+          diaria={metaDia}
           status={vaiBaterMeta}
         />
 
       </div>
 
-      {/* ================= INSIGHTS ================= */}
+      {/* INSIGHTS */}
       <InsightsInteligentes insights={insights} />
 
     </div>

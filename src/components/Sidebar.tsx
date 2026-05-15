@@ -1,4 +1,4 @@
-import { Home, BarChart3, Settings, Plus } from "lucide-react";
+import { Home, BarChart3, Settings, Plus, List } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
 export default function Sidebar() {
@@ -8,6 +8,7 @@ export default function Sidebar() {
     { to: "/", icon: Home, label: "Dashboard" },
     { to: "/relatorios", icon: BarChart3, label: "Relatórios" },
     { to: "/nova-venda", icon: Plus, label: "Nova Venda" },
+    { to: "/vendas", icon: List, label: "Lista de Vendas" }, // ✅ novo
     { to: "/configuracoes", icon: Settings, label: "Configurações" },
   ];
 
@@ -24,13 +25,60 @@ export default function Sidebar() {
         shadow-[0_0_40px_rgba(0,0,0,0.6)]
       "
     >
-      {/* LOGO */}
-      <div className="flex items-center justify-center px-4">
-        <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 shadow-md" />
+
+      {/* ======================
+         TOPO PREMIUM (COR AJUSTADA)
+      ====================== */}
+      <div className="px-3">
+
+        <div className="
+          bg-gradient-to-b from-[#0ea5e9]/20 to-[#0284c7]/20
+          border border-white/10
+          backdrop-blur-xl
+          rounded-2xl p-4 text-center shadow-lg
+        ">
+
+          {/* LOJA */}
+          <p className="text-xs text-slate-300">
+            Loja Barueri
+          </p>
+
+          {/* AVATAR */}
+          <div className="
+            w-12 h-12 rounded-full
+            mx-auto my-3
+            flex items-center justify-center
+            bg-gradient-to-br from-cyan-400 to-blue-500
+            text-white font-bold
+            shadow-md
+          ">
+            MF
+          </div>
+
+          {/* NOME */}
+          <p className="text-xs font-semibold text-white leading-tight">
+            Marcelo Fernandes
+          </p>
+
+          {/* MÊS */}
+          <div className="
+            mt-3 text-xs
+            bg-white/10
+            border border-white/10
+            rounded-lg py-2 px-2
+            text-slate-200
+          ">
+            Maio 2026
+          </div>
+
+        </div>
+
       </div>
 
-      {/* MENU */}
-      <nav className="flex flex-col gap-3 mt-6 px-2">
+      {/* ======================
+         MENU
+      ====================== */}
+      <nav className="flex flex-col gap-3 mt-4 px-2">
 
         {menu.map((item, index) => {
           const Icon = item.icon;
@@ -49,7 +97,7 @@ export default function Sidebar() {
                 `}
               >
 
-                {/* ACTIVE GLOW (NÍVEL PRO) */}
+                {/* GLOW ATIVO */}
                 {isActive && (
                   <>
                     <span className="absolute inset-0 rounded-xl bg-cyan-400/10 blur-md" />
@@ -57,7 +105,7 @@ export default function Sidebar() {
                   </>
                 )}
 
-                {/* ÍCONE COM MICRO INTERAÇÃO */}
+                {/* ÍCONE */}
                 <div
                   className="
                     flex items-center justify-center
@@ -72,7 +120,7 @@ export default function Sidebar() {
                   <Icon size={20} className="text-white" />
                 </div>
 
-                {/* LABEL */}
+                {/* TEXTO */}
                 <span
                   className="
                     ml-3 text-white text-sm whitespace-nowrap
@@ -85,7 +133,7 @@ export default function Sidebar() {
 
               </NavLink>
 
-              {/* TOOLTIP (QUANDO FECHADO) */}
+              {/* TOOLTIP */}
               <div
                 className="
                   absolute left-full ml-3 top-1/2 -translate-y-1/2
@@ -106,6 +154,8 @@ export default function Sidebar() {
         })}
 
       </nav>
+
     </div>
   );
 }
+``

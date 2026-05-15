@@ -1,3 +1,4 @@
+import ListaVendas from "./pages/ListaVendas";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
@@ -20,6 +21,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/nova-venda" element={<NovaVenda />} />
+<Route path="/vendas" element={<ListaVendas />} />
               <Route
                 path="/configuracoes"
                 element={<Configuracoes />}

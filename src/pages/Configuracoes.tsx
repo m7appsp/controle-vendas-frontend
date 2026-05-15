@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { Pencil, Trash2 } from "lucide-react";
 
 const servicosOptions = [
   { value: "receita_total", label: "Receita Total" },
@@ -12,108 +13,101 @@ const servicosOptions = [
 export default function Configuracoes() {
   const hoje = new Date();
 
+  const [metas, setMetas] = useState<any[]>([]);
+  const [agrupado, setAgrupado] = useState<any>({});
+  const [expandido, setExpandido] = useState<string | null>(null);
+
   const [open, setOpen] = useState(false);
-  const [mes, setMes] = useState(hoje.getMonth() + 1);
-  const [ano, setAno] = useState(hoje.getFullYear());
-
-  const [metasSalvas, setMetasSalvas] = useState<any[]>([]);
-
-  const [metas, setMetas] = useState<any[]>([
-    { servico: "", tipo_meta: "quantidade", valor_meta: "" },
-  ]);
-
   const [editando, setEditando] = useState<any>(null);
+
+  const [form, setForm] = useState({
+    servico: "",
+    tipo_meta: "quantidade",
+    valor_meta: "",
+    mes: hoje.getMonth() + 1,
+    ano: hoje.getFullYear(),
+  });
 
   /* ======================
      CARREGAR METAS
   ====================== */
-  const carregarMetas = async () => {
+  const carregar = async () => {
     const { data } = await supabase
       .from("metas")
       .select("*")
-      .eq("mes", mes)
-      .eq("ano", ano);
+      .order("ano", { ascending: false })
+      .order("mes", { ascending: false });
 
-    setMetasSalvas(data || []);
+    setMetas(data || []);
   };
 
   useEffect(() => {
-    carregarMetas();
-  }, [mes, ano]);
+    carregar();
+  }, []);
 
   /* ======================
-     ADICIONAR META
+     AGRUPAR POR MÊS
   ====================== */
-  const adicionarMeta = () => {
-    setMetas([
-      ...metas,
-      { servico: "", tipo_meta: "quantidade", valor_meta: "" },
-    ]);
-  };
+  useEffect(() => {
+    const group: any = {};
 
-  const atualizarMeta = (index: number, campo: string, valor: any) => {
-    const nova = [...metas];
-    nova[index][campo] = valor;
-    setMetas(nova);
-  };
+    metas.forEach((m) => {
+      const key = `${m.ano}-${m.mes}`;
 
-  const removerMeta = (index: number) => {
-    if (metas.length > 1) {
-      setMetas(metas.filter((_, i) => i !== index));
-    }
-  };
+      if (!group[key]) {
+        group[key] = {
+          mes: m.mes,
+          ano: m.ano,
+          metas: [],
+        };
+      }
+
+      group[key].metas.push(m);
+    });
+
+    setAgrupado(group);
+  }, [metas]);
 
   /* ======================
-     SALVAR
+     SALVAR / UPDATE
   ====================== */
   const salvar = async () => {
-    if (editando) {
-      // UPDATE
-      const meta = metas[0];
+    if (!form.servico || !form.valor_meta) return;
 
+    if (editando) {
       await supabase
         .from("metas")
         .update({
-          servico: meta.servico,
-          tipo_meta: meta.tipo_meta,
-          valor_meta: Number(meta.valor_meta),
+          servico: form.servico,
+          tipo_meta: form.tipo_meta,
+          valor_meta: Number(form.valor_meta),
         })
         .eq("id", editando.id);
     } else {
-      // INSERT
-      const payload = metas
-        .filter((m) => m.servico && m.valor_meta)
-        .map((m) => ({
-          servico: m.servico,
-          tipo_meta: m.tipo_meta,
-          valor_meta: Number(m.valor_meta),
-          mes,
-          ano,
-        }));
-
-      if (payload.length === 0) return;
-
-      await supabase.from("metas").insert(payload);
+      await supabase.from("metas").insert([
+        {
+          ...form,
+          valor_meta: Number(form.valor_meta),
+        },
+      ]);
     }
 
-    resetForm();
-    carregarMetas();
+    fecharModal();
+    carregar();
   };
 
   /* ======================
      EDITAR
   ====================== */
-  const iniciarEdicao = (meta: any) => {
-    setEditando(meta);
-
-    setMetas([
-      {
-        servico: meta.servico,
-        tipo_meta: meta.tipo_meta,
-        valor_meta: meta.valor_meta,
-      },
-    ]);
-
+  const editar = (m: any) => {
+    setEditando(m);
+    setForm({
+      servico: m.servico,
+      tipo_meta: m.tipo_meta,
+      valor_meta: m.valor_meta,
+      mes: m.mes,
+      ano: m.ano,
+    });
     setOpen(true);
   };
 
@@ -122,175 +116,231 @@ export default function Configuracoes() {
   ====================== */
   const excluir = async (id: string) => {
     await supabase.from("metas").delete().eq("id", id);
-    carregarMetas();
+    carregar();
   };
 
-  const resetForm = () => {
-    setEditando(null);
-    setMetas([{ servico: "", tipo_meta: "quantidade", valor_meta: "" }]);
+  const fecharModal = () => {
     setOpen(false);
+    setEditando(null);
+    setForm({
+      servico: "",
+      tipo_meta: "quantidade",
+      valor_meta: "",
+      mes: hoje.getMonth() + 1,
+      ano: hoje.getFullYear(),
+    });
   };
 
   return (
     <div className="min-h-screen bg-[#020617] text-white p-6 space-y-6">
 
       {/* HEADER */}
-      <div>
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Metas</h1>
-        <p className="text-slate-400">
-          Gerencie metas mensais
-        </p>
+
+        <button
+          onClick={() => {
+            fecharModal();
+            setOpen(true);
+          }}
+          className="bg-cyan-500 px-4 py-2 rounded-xl"
+        >
+          Nova Meta
+        </button>
       </div>
 
-      {/* BOTÃO */}
-      <button
-        onClick={() => {
-          resetForm();
-          setOpen(true);
-        }}
-        className="bg-cyan-500 px-4 py-2 rounded-xl"
-      >
-        Nova Meta
-      </button>
+      {/* LISTA AGRUPADA */}
+      {Object.keys(agrupado).map((key) => {
+        const grupo = agrupado[key];
 
-      {/* LISTA */}
-      <div className="bg-[#0b1220] p-6 rounded-3xl space-y-3">
-        {metasSalvas.map((m) => (
-          <div
-            key={m.id}
-            className="flex justify-between items-center bg-[#020617] p-4 rounded-xl"
-          >
-            <div>
-              <p className="font-semibold">{m.servico}</p>
-              <p className="text-sm text-slate-400">
-                {m.tipo_meta} • {m.valor_meta}
-              </p>
+        return (
+          <div key={key} className="bg-[#0b1220] rounded-3xl p-4">
+
+            {/* HEADER DO MÊS */}
+            <div
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() =>
+                setExpandido(expandido === key ? null : key)
+              }
+            >
+              <h2 className="text-lg font-semibold capitalize">
+                {new Date(grupo.ano, grupo.mes - 1).toLocaleString(
+                  "pt-BR",
+                  { month: "long", year: "numeric" }
+                )}
+              </h2>
+
+              <span>
+                {expandido === key ? "▲" : "▼"}
+              </span>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => iniciarEdicao(m)}
-                className="text-yellow-400"
-              >
-                Editar
-              </button>
+            {/* CONTEÚDO */}
+            {expandido === key && (
+              <div className="mt-4 space-y-4">
 
-              <button
-                onClick={() => excluir(m.id)}
-                className="text-red-400"
-              >
-                Excluir
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+                <div className="bg-[#020617] border border-white/10 rounded-2xl p-4">
 
-      {/* MODAL */}
-      {open && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+                  {/* HEADER INTERNO */}
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold">
+                      Metas Definidas
+                    </h3>
 
-          <div className="bg-gradient-to-br from-[#0b1220] to-[#020617] w-[750px] max-h-[90vh] rounded-3xl p-6 flex flex-col">
+                    <p className="text-xs text-slate-400">
+                      {grupo.metas.length} metas para{" "}
+                      {new Date(grupo.ano, grupo.mes - 1).toLocaleString(
+                        "pt-BR",
+                        { month: "long" }
+                      )}
+                    </p>
+                  </div>
 
-            <h2 className="text-xl font-bold mb-4">
-              {editando ? "Editar Meta" : "Nova Meta"}
-            </h2>
+                  {/* LISTA */}
+                  <div className="space-y-3">
+                    {grupo.metas.map((m: any) => (
+                      <div
+                        key={m.id}
+                        className="
+                          flex justify-between items-center
+                          bg-[#020617]
+                          border border-white/10
+                          rounded-xl p-4
+                          hover:bg-white/5 transition
+                        "
+                      >
+                        <div>
+                          <p className="font-semibold">
+                            {m.servico}
+                          </p>
 
-            <div className="space-y-4 overflow-y-auto max-h-[65vh]">
+                          <p className="text-sm text-slate-400">
+                            Meta: {m.valor_meta} ({m.tipo_meta})
+                          </p>
 
-              {/* PERÍODO */}
-              {!editando && (
-                <div className="grid grid-cols-2 gap-4">
+                          <p className="text-xs text-slate-500">
+                            Período: Mensal
+                          </p>
+                        </div>
 
-                  <select
-                    value={mes}
-                    onChange={(e) => setMes(Number(e.target.value))}
-                    className="bg-[#020617] border rounded-xl p-2"
-                  >
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <option key={i} value={i + 1}>
-                        {new Date(2000, i).toLocaleString("pt-BR", {
-                          month: "long",
-                        })}
-                      </option>
+                        <div className="flex gap-2">
+
+                          {/* EDITAR */}
+                          <button
+                            onClick={() => editar(m)}
+                            className="
+                              p-2 rounded-lg
+                              border border-white/10
+                              hover:bg-white/5 transition
+                            "
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          {/* EXCLUIR */}
+                          <button
+                            onClick={() => excluir(m.id)}
+                            className="
+                              p-2 rounded-lg
+                              border border-red-500/30
+                              text-red-400
+                              hover:bg-red-500/10 transition
+                            "
+                          >
+                            <Trash2 size={16} />
+                          </button>
+
+                        </div>
+                      </div>
                     ))}
-                  </select>
-
-                  <input
-                    type="number"
-                    value={ano}
-                    onChange={(e) => setAno(Number(e.target.value))}
-                    className="bg-[#020617] border rounded-xl p-2"
-                  />
-
-                </div>
-              )}
-
-              {/* CAMPOS */}
-              {metas.map((meta, index) => (
-                <div key={index} className="space-y-3">
-
-                  <select
-                    className="w-full bg-[#020617] border rounded-xl p-2"
-                    value={meta.servico}
-                    onChange={(e) =>
-                      atualizarMeta(index, "servico", e.target.value)
-                    }
-                  >
-                    <option value="">Serviço</option>
-                    {servicosOptions.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  <div className="grid grid-cols-2 gap-3">
-
-                    <select
-                      className="bg-[#020617] border rounded-xl p-2"
-                      value={meta.tipo_meta}
-                      onChange={(e) =>
-                        atualizarMeta(index, "tipo_meta", e.target.value)
-                      }
-                    >
-                      <option value="quantidade">Quantidade</option>
-                      <option value="faturamento">Faturamento</option>
-                    </select>
-
-                    <input
-                      type="number"
-                      className="bg-[#020617] border rounded-xl p-2"
-                      value={meta.valor_meta}
-                      onChange={(e) =>
-                        atualizarMeta(index, "valor_meta", e.target.value)
-                      }
-                    />
-
                   </div>
 
                 </div>
-              ))}
-            </div>
 
-            {/* FOOTER */}
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={resetForm}
-                className="flex-1 bg-slate-700 p-2 rounded-xl"
-              >
+              </div>
+            )}
+
+          </div>
+        );
+      })}
+
+      {/* MODAL */}
+      {open && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
+
+          <div className="bg-[#0b1220] p-6 rounded-2xl w-[500px] space-y-4">
+
+            <h2 className="text-lg font-semibold">
+              {editando ? "Editar Meta" : "Nova Meta"}
+            </h2>
+
+            <select
+              value={form.servico}
+              onChange={(e) =>
+                setForm({ ...form, servico: e.target.value })
+              }
+              className="w-full p-2 bg-[#020617] rounded"
+            >
+              <option value="">Serviço</option>
+              {servicosOptions.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={form.tipo_meta}
+              onChange={(e) =>
+                setForm({ ...form, tipo_meta: e.target.value })
+              }
+              className="w-full p-2 bg-[#020617] rounded"
+            >
+              <option value="quantidade">Quantidade</option>
+              <option value="faturamento">Faturamento</option>
+            </select>
+
+            <input
+              type="number"
+              value={form.valor_meta}
+              onChange={(e) =>
+                setForm({ ...form, valor_meta: e.target.value })
+              }
+              className="w-full p-2 bg-[#020617] rounded"
+            />
+
+            {!editando && (
+              <div className="flex gap-3">
+                <input
+                  type="number"
+                  value={form.mes}
+                  onChange={(e) =>
+                    setForm({ ...form, mes: Number(e.target.value) })
+                  }
+                  className="w-1/2 p-2 bg-[#020617] rounded"
+                />
+                <input
+                  type="number"
+                  value={form.ano}
+                  onChange={(e) =>
+                    setForm({ ...form, ano: Number(e.target.value) })
+                  }
+                  className="w-1/2 p-2 bg-[#020617] rounded"
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button onClick={fecharModal}>
                 Cancelar
               </button>
-
-              <button
-                onClick={salvar}
-                className="flex-1 bg-cyan-500 p-2 rounded-xl"
-              >
+              <button onClick={salvar}>
                 Salvar
               </button>
             </div>
 
           </div>
+
         </div>
       )}
 
