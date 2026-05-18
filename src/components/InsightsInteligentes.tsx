@@ -9,16 +9,24 @@ import {
   BarChart3,
 } from "lucide-react";
 
-export default function InsightsInteligentes({ insights = [] }: any) {
-  if (!insights || insights.length === 0) return null;
+type Props = {
+  insights?: any[];
+  melhorDia?: any;
+  piorDia?: any;
+  ticketMedio?: number;
+  metaDia?: number;
+  rankingServicos?: any[];
+};
 
-  const rankingServicos = [
-    { nome: "Pós Titular", total: 18 },
-    { nome: "Controle", total: 12 },
-    { nome: "Virtua", total: 9 },
-    { nome: "Aparelho", total: 6 },
-    { nome: "Acessórios", total: 5 },
-  ];
+export default function InsightsInteligentes({
+  insights = [],
+  melhorDia,
+  piorDia,
+  ticketMedio = 0,
+  metaDia = 0,
+  rankingServicos = [],
+}: Props) {
+  if (!insights || insights.length === 0) return null;
 
   return (
     <div className="bg-[#0b1220] rounded-3xl border border-white/10 p-6 space-y-6">
@@ -41,8 +49,15 @@ export default function InsightsInteligentes({ insights = [] }: any) {
             <Trophy size={18} className="text-yellow-400" />
           </div>
 
-          <p className="text-xl font-bold mt-3">R$ 3.250</p>
-          <p className="text-xs text-slate-500 mt-1">14 Maio</p>
+          <p className="text-xl font-bold mt-3">
+            {melhorDia
+              ? `R$ ${Number(melhorDia.valor).toLocaleString("pt-BR")}`
+              : "R$ 0"}
+          </p>
+
+          <p className="text-xs text-slate-500 mt-1">
+            {melhorDia?.data || "--"}
+          </p>
         </div>
 
         <div className="bg-[#020617] rounded-2xl p-4 border border-white/5">
@@ -51,8 +66,15 @@ export default function InsightsInteligentes({ insights = [] }: any) {
             <TrendingDown size={18} className="text-red-400" />
           </div>
 
-          <p className="text-xl font-bold mt-3">R$ 420</p>
-          <p className="text-xs text-slate-500 mt-1">03 Maio</p>
+          <p className="text-xl font-bold mt-3">
+            {piorDia
+              ? `R$ ${Number(piorDia.valor).toLocaleString("pt-BR")}`
+              : "R$ 0"}
+          </p>
+
+          <p className="text-xs text-slate-500 mt-1">
+            {piorDia?.data || "--"}
+          </p>
         </div>
 
         <div className="bg-[#020617] rounded-2xl p-4 border border-white/5">
@@ -61,7 +83,10 @@ export default function InsightsInteligentes({ insights = [] }: any) {
             <DollarSign size={18} className="text-cyan-400" />
           </div>
 
-          <p className="text-xl font-bold mt-3">R$ 287</p>
+          <p className="text-xl font-bold mt-3">
+            R$ {Number(ticketMedio).toFixed(0)}
+          </p>
+
           <p className="text-xs text-slate-500 mt-1">por venda</p>
         </div>
 
@@ -71,8 +96,11 @@ export default function InsightsInteligentes({ insights = [] }: any) {
             <Target size={18} className="text-green-400" />
           </div>
 
-          <p className="text-xl font-bold mt-3">82%</p>
-          <p className="text-xs text-slate-500 mt-1">ritmo ideal</p>
+          <p className="text-xl font-bold mt-3">
+            R$ {Number(metaDia).toLocaleString("pt-BR")}
+          </p>
+
+          <p className="text-xs text-slate-500 mt-1">necessário/dia</p>
         </div>
       </div>
 
@@ -106,7 +134,7 @@ export default function InsightsInteligentes({ insights = [] }: any) {
         </div>
 
         <div className="space-y-3">
-          {rankingServicos.map((item, index) => (
+          {rankingServicos.map((item: any, index: number) => (
             <div key={index}>
               <div className="flex justify-between text-sm mb-1">
                 <span>{item.nome}</span>
@@ -117,7 +145,11 @@ export default function InsightsInteligentes({ insights = [] }: any) {
                 <div
                   className="h-2 bg-cyan-400 rounded-full"
                   style={{
-                    width: `${(item.total / rankingServicos[0].total) * 100}%`,
+                    width: `${
+                      rankingServicos[0]
+                        ? (item.total / rankingServicos[0].total) * 100
+                        : 0
+                    }%`,
                   }}
                 />
               </div>

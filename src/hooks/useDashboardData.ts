@@ -34,6 +34,9 @@ export function useDashboardData(
         setLoading(true);
         setErro("");
 
+        /* ======================
+           BUSCAR VENDAS
+        ====================== */
         const { data, error } = await supabase
           .from("vendas_individuais")
           .select("*")
@@ -46,20 +49,35 @@ export function useDashboardData(
 
         const vendas = data || [];
 
+        /* ======================
+           FILTRAR MÊS/ANO
+        ====================== */
         const vendasMes = vendas.filter((v: any) => {
           const dataVenda = new Date(v.data);
+
           return (
             dataVenda.getMonth() + 1 === mes &&
             dataVenda.getFullYear() === ano
           );
         });
 
+        /* ======================
+           BUSCAR METAS
+        ====================== */
         const { data: metasData } = await supabase
           .from("metas")
           .select("*")
           .eq("mes", mes)
           .eq("ano", ano);
 
+        const getMeta = (servico: string) =>
+          metasData?.find((m: any) => m.servico === servico)?.valor_meta || 0;
+
+        const metaReceita = getMeta("receita_total");
+
+        /* ======================
+           ACUMULADORES
+        ====================== */
         let receitaTotal = 0;
         let pos = 0;
         let residencial = 0;
@@ -69,6 +87,9 @@ export function useDashboardData(
         const servicosMap: Record<string, number> = {};
         const diasMap: Record<string, number> = {};
 
+        /* ======================
+           PROCESSAR VENDAS
+        ====================== */
         vendasMes.forEach((v: any) => {
           const receita = Number(v.receita || 0);
           const quantidade = Number(v.quantidade || 0);
@@ -82,50 +103,57 @@ export function useDashboardData(
           if (grupo === "aparelho") aparelhos += quantidade;
           if (grupo === "acessorios") acessorios += quantidade;
 
-          /* ranking serviços */
+          /* ranking */
           servicosMap[v.servico] =
             (servicosMap[v.servico] || 0) + quantidade;
 
-          /* melhor/pior dia */
+          /* receita por dia */
           const dia = new Date(v.data).toLocaleDateString("pt-BR");
+
           diasMap[dia] = (diasMap[dia] || 0) + receita;
         });
 
-        /* ranking real */
+        /* ======================
+           RANKING SERVIÇOS
+        ====================== */
         const rankingServicos = Object.entries(servicosMap)
-          .map(([nome, total]) => ({ nome, total }))
+          .map(([nome, total]) => ({
+            nome,
+            total: Number(total),
+          }))
           .sort((a, b) => b.total - a.total)
           .slice(0, 5);
 
-        /* melhor e pior dia */
+        /* ======================
+           MELHOR / PIOR DIA
+        ====================== */
         const diasOrdenados = Object.entries(diasMap).sort(
-          (a, b) => b[1] - a[1]
+          (a, b) => Number(b[1]) - Number(a[1])
         );
 
-        const melhorDia = diasOrdenados[0]
+        const melhorDia = diasOrdenados.length
           ? {
               data: diasOrdenados[0][0],
-              valor: diasOrdenados[0][1],
+              valor: Number(diasOrdenados[0][1]),
             }
           : null;
 
-        const piorDia = diasOrdenados[diasOrdenados.length - 1]
+        const piorDia = diasOrdenados.length
           ? {
               data: diasOrdenados[diasOrdenados.length - 1][0],
-              valor: diasOrdenados[diasOrdenados.length - 1][1],
+              valor: Number(diasOrdenados[diasOrdenados.length - 1][1]),
             }
           : null;
 
+        /* ======================
+           TICKET MÉDIO
+        ====================== */
         const ticketMedio =
-          vendasMes.length > 0
-            ? receitaTotal / vendasMes.length
-            : 0;
+          vendasMes.length > 0 ? receitaTotal / vendasMes.length : 0;
 
-        const getMeta = (servico: string) =>
-          metasData?.find((m: any) => m.servico === servico)?.valor_meta || 0;
-
-        const metaReceita = getMeta("receita_total");
-
+        /* ======================
+           META / PROJEÇÃO
+        ====================== */
         const hoje = new Date();
         const diaAtual = hoje.getDate();
         const diasNoMes = new Date(ano, mes, 0).getDate();
@@ -141,6 +169,9 @@ export function useDashboardData(
 
         const vaiBaterMeta = projecaoFinal >= metaReceita;
 
+        /* ======================
+           INSIGHTS DINÂMICOS
+        ====================== */
         const insights = [];
 
         if (projecaoFinal >= metaReceita) {
@@ -164,16 +195,21 @@ export function useDashboardData(
           });
         }
 
+        /* ======================
+           SET FINAL
+        ====================== */
         setDados({
           receitaTotal,
           pos,
           residencial,
           aparelhos,
           acessorios,
+
           metaReceita,
           projecaoFinal,
           metaDia,
           vaiBaterMeta,
+
           insights,
           vendasIndividuais: vendasMes,
 
@@ -193,5 +229,9 @@ export function useDashboardData(
     carregar();
   }, [mes, ano, diaSelecionado]);
 
-  return { ...dados, loading, erro };
+  return {
+    ...dados,
+    loading,
+    erro,
+  };
 }
