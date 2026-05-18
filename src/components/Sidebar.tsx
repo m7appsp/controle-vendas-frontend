@@ -1,15 +1,49 @@
-import { Home, BarChart3, Settings, Plus, List } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import {
+  Home,
+  ClipboardCheck,
+  Settings,
+  Plus,
+  List,
+} from "lucide-react";
+
+import {
+  NavLink,
+  useLocation,
+} from "react-router-dom";
 
 export default function Sidebar() {
   const location = useLocation();
 
   const menu = [
-    { to: "/", icon: Home, label: "Dashboard" },
-    { to: "/relatorios", icon: BarChart3, label: "Relatórios" },
-    { to: "/nova-venda", icon: Plus, label: "Nova Venda" },
-    { to: "/vendas", icon: List, label: "Lista de Vendas" },
-    { to: "/configuracoes", icon: Settings, label: "Configurações" },
+    {
+      to: "/",
+      icon: Home,
+      label: "Dashboard",
+    },
+
+    {
+      to: "/instalacoes",
+      icon: ClipboardCheck,
+      label: "Instalações",
+    },
+
+    {
+      to: "/nova-venda",
+      icon: Plus,
+      label: "Nova Venda",
+    },
+
+    {
+      to: "/vendas",
+      icon: List,
+      label: "Lista de Vendas",
+    },
+
+    {
+      to: "/configuracoes",
+      icon: Settings,
+      label: "Configurações",
+    },
   ];
 
   return (
@@ -87,7 +121,8 @@ export default function Sidebar() {
       <nav className="flex flex-col gap-3 mt-4 px-2">
         {menu.map((item, index) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.to;
+          const isActive =
+            location.pathname === item.to;
 
           return (
             <div
@@ -100,13 +135,18 @@ export default function Sidebar() {
                   relative flex items-center w-full
                   px-3 py-3 rounded-xl
                   transition-all duration-300
-                  ${isActive ? "bg-white/10" : "hover:bg-white/5"}
+                  ${
+                    isActive
+                      ? "bg-white/10"
+                      : "hover:bg-white/5"
+                  }
                 `}
               >
                 {/* GLOW ATIVO */}
                 {isActive && (
                   <>
                     <span className="absolute inset-0 rounded-xl bg-cyan-400/10 blur-md" />
+
                     <span className="absolute left-0 top-2 bottom-2 w-1 bg-cyan-400 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
                   </>
                 )}
@@ -123,7 +163,10 @@ export default function Sidebar() {
                     group-hover:scale-110
                   "
                 >
-                  <Icon size={20} className="text-white" />
+                  <Icon
+                    size={20}
+                    className="text-white"
+                  />
                 </div>
 
                 {/* TEXTO */}

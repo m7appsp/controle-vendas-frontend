@@ -1,37 +1,83 @@
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+} from "react-router-dom";
+
+import Dashboard from "./pages/Dashboard";
+import Instalacoes from "./pages/Instalacoes";
 import ListaVendas from "./pages/ListaVendas";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Configuracoes from "./pages/Configuracoes";
+import NovaVenda from "./pages/NovaVenda";
 
 import Sidebar from "./components/Sidebar";
-import Dashboard from "./pages/Dashboard";
-import NovaVenda from "./pages/NovaVenda";
-import Configuracoes from "./pages/Configuracoes";
 
-import { VendasProvider } from "./features/vendas/context/VendasContext";
+/* ======================
+   LAYOUT
+====================== */
 
-function App() {
+function Layout({ children }: any) {
   return (
-    <BrowserRouter>
-      <VendasProvider>
-        <div className="flex h-screen bg-[#020617] text-white">
-          {/* SIDEBAR */}
-          <Sidebar />
+    <div className="flex min-h-screen bg-[#020617] text-white">
 
-          {/* CONTEÚDO PRINCIPAL */}
-          <main className="flex-1 p-6 bg-[#020617] overflow-auto">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/nova-venda" element={<NovaVenda />} />
-<Route path="/vendas" element={<ListaVendas />} />
-              <Route
-                path="/configuracoes"
-                element={<Configuracoes />}
-              />
-            </Routes>
-          </main>
-        </div>
-      </VendasProvider>
-    </BrowserRouter>
+      {/* SIDEBAR PREMIUM */}
+      <Sidebar />
+
+      {/* CONTEÚDO */}
+      <div className="flex-1 overflow-auto">
+        {children}
+      </div>
+
+    </div>
   );
 }
 
-export default App;
+/* ======================
+   APP
+====================== */
+
+export default function App() {
+  return (
+    <Router>
+
+      <Layout>
+
+        <Routes>
+
+          {/* DASHBOARD */}
+          <Route
+            path="/"
+            element={<Dashboard />}
+          />
+
+          {/* INSTALAÇÕES */}
+          <Route
+            path="/instalacoes"
+            element={<Instalacoes />}
+          />
+
+          {/* NOVA VENDA */}
+          <Route
+            path="/nova-venda"
+            element={<NovaVenda />}
+          />
+
+          {/* VENDAS */}
+          <Route
+            path="/vendas"
+            element={<ListaVendas />}
+          />
+
+          {/* CONFIG */}
+          <Route
+            path="/configuracoes"
+            element={<Configuracoes />}
+          />
+
+        </Routes>
+
+      </Layout>
+
+    </Router>
+  );
+}
