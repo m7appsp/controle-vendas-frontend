@@ -1,204 +1,379 @@
-import { useState } from "react";
-import { Save, Plus, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
-
-const SERVICOS = [
-  {
-    grupo: "Pós Total",
-    itens: [
-      "Pós Titular",
-      "Controle",
-      "Migra Pós",
-      "Migra Controle",
-      "Dep Pago",
-      "Dep Grátis",
-      "Banda Larga Móvel"
-    ]
-  },
-  {
-    grupo: "Residencial",
-    itens: ["Virtua", "TV Box", "TV Trade", "Fone Fixo"]
-  },
-  {
-    grupo: "Avançados",
-    itens: ["Upgrade", "Wifi Mesh", "Trocafy", "Seguro", "M-Play"]
-  },
-  {
-    grupo: "Produtos",
-    itens: ["Aparelho", "Acessórios"]
-  }
-];
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
+import { Calendar } from "lucide-react";
 
 export default function NovaVenda() {
-  const [cliente, setCliente] = useState("");
-  const [cpf, setCpf] = useState("");
-  const [data, setData] = useState(
-    new Date().toISOString().substring(0, 10)
-  );
 
-  const [itens, setItens] = useState([
-    { id: 1, servico: "", quantidade: 1, receita: "" }
+  const [openCalendar, setOpenCalendar] = useState(false);
+  const [dataVenda, setDataVenda] = useState(new Date());
+
+  const [openSelect, setOpenSelect] = useState<string | null>(null);
+
+  const [vendas, setVendas] = useState([
+    {
+      cpf: "",
+      observacao: "",
+      itens: [{ servico: "", quantidade: 1, receita: "" }],
+    },
   ]);
 
-  const adicionarItem = () => {
-    setItens((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        servico: "",
-        quantidade: 1,
-        receita: ""
-      }
+  /* ✅ fechar dropdown ao clicar fora */
+  useEffect(() => {
+    const fechar = () => setOpenSelect(null);
+    window.addEventListener("click", fechar);
+
+    return () => window.removeEventListener("click", fechar);
+  }, []);
+
+  /* ====================== VENDA ====================== */
+  const addVenda = () => {
+    setVendas([
+      ...vendas,
+      { cpf: "", observacao: "", itens: [{ servico: "", quantidade: 1, receita: "" }] }
     ]);
   };
 
-  const removerItem = (id) => {
-    setItens((prev) => prev.filter((i) => i.id !== id));
+  const updateVenda = (index: number, field: string, value: any) => {
+    const lista = [...vendas];
+    lista[index][field] = value;
+    setVendas(lista);
   };
 
-  const atualizarItem = (id, campo, valor) => {
-    setItens((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, [campo]: valor } : item
-      )
-    );
+  /* ====================== ITENS ====================== */
+  const addItem = (vIndex: number) => {
+    const lista = [...vendas];
+    lista[vIndex].itens.push({ servico: "", quantidade: 1, receita: "" });
+    setVendas(lista);
   };
 
-  const salvarVenda = async (e) => {
-    e.preventDefault();
+  const updateItem = (vIndex: number, iIndex: number, field: string, value: any) => {
+    const lista = [...vendas];
+    lista[vIndex].itens[iIndex][field] = value;
+    setVendas(lista);
+  };
 
-    const registros = itens.map((item) => ({
-      data: new Date(`${data}T12:00:00Z`),
-      servico: item.servico,
-      quantidade: Number(item.quantidade),
-      receita: Number(item.receita.replace(",", ".")),
-      cliente_nome: cliente,
-      cliente_cpf: cpf
-    }));
+  const removeItem = (vIndex: number, iIndex: number) => {
+    const lista = [...vendas];
+    lista[vIndex].itens.splice(iIndex, 1);
+    setVendas(lista);
+  };
 
-    const { error } = await supabase
-      .from("vendas_individuais")
-      .insert(registros);
+  /* ✅ ====================== SALVAR CORRIGIDO ====================== */
+  const salvar = async () => {
 
-    if (error) {
-      console.error(error);
-      alert("Erro ao salvar venda");
-      return;
+    try {
+      const payload: any[] = [];
+
+      vendas.forEach((v) => {
+        v.itens.forEach((item) => {
+
+          // ✅ valida corretamente (SEM quebrar loop)
+          if (v.cpf && item.servico) {
+            payload.push({
+  cliente_nome: "",
+  cliente_cpf: v.cpf,
+  servico: item.servico,
+  quantidade: Number(item.quantidade || 0),
+  receita: Number(
+    String(item.receita).replace(",", ".")
+  ),
+  data: dataVenda.toISOString().split("T")[0],
+});
+          }
+
+        });
+      });
+
+      console.log("Payload:", payload);
+
+      if (payload.length === 0) {
+        alert("Preencha CPF e pelo menos um item válido");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("vendas_individuais")
+        .insert(payload);
+
+      if (error) {
+  console.error("Erro Supabase:", error);
+  alert("Erro ao salvar: " + error.message);
+  return;
+}
+
+
+      alert("Venda registrada ✅");
+
+      setVendas([
+        {
+          cpf: "",
+          observacao: "",
+          itens: [{ servico: "", quantidade: 1, receita: "" }],
+        },
+      ]);
+
+    } catch (err) {
+      console.error("Erro geral:", err);
+      alert("Erro inesperado");
     }
-
-    alert("Venda salva com sucesso!");
-    setItens([{ id: 1, servico: "", quantidade: 1, receita: "" }]);
   };
 
   return (
-    <div className="p-6 text-white">
-      <h1 className="text-2xl font-bold mb-6">Nova Venda</h1>
+    <div className="min-h-screen bg-[#020617] text-white p-6 flex flex-col items-center">
 
-      <form onSubmit={salvarVenda} className="space-y-6 max-w-3xl">
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            placeholder="Nome do cliente"
-            value={cliente}
-            onChange={(e) => setCliente(e.target.value)}
-            className="input"
-          />
+      {/* HEADER */}
+      <div className="w-full max-w-5xl mb-6">
+        <h1 className="text-3xl font-bold">Cadastrar Venda</h1>
+      </div>
 
-          <input
-            placeholder="CPF"
-            value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
-            className="input"
-          />
+      {/* CONTAINER */}
+      <div className="w-full max-w-5xl bg-[#0b1220] border border-white/10 rounded-3xl p-6 space-y-6">
 
-          <input
-            type="date"
-            value={data}
-            onChange={(e) => setData(e.target.value)}
-            className="input col-span-2"
-          />
+        {/* ====================== DATA ====================== */}
+        <div className="bg-[#020617] border border-white/10 rounded-2xl p-4">
+
+          <p className="text-sm mb-3">Data da Venda</p>
+
+          <div className="relative">
+
+            <input
+              readOnly
+              value={dataVenda.toLocaleDateString("pt-BR")}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenCalendar(!openCalendar);
+              }}
+              className="w-full bg-[#020617] border border-white/10 rounded-xl p-3 cursor-pointer"
+            />
+
+            <Calendar className="absolute right-3 top-3 text-slate-400" />
+
+            {openCalendar && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="absolute z-50 mt-2 bg-[#020617] border border-white/10 rounded-xl p-3 shadow-lg"
+              >
+                <DayPicker
+                  mode="single"
+                  selected={dataVenda}
+                  onSelect={(d) => {
+                    if (d) {
+                      setDataVenda(d);
+                      setOpenCalendar(false);
+                    }
+                  }}
+                />
+              </div>
+            )}
+
+          </div>
+
         </div>
 
-        {itens.map((item) => (
-          <div key={item.id} className="grid grid-cols-12 gap-3">
-            
-            {/* SELECT SERVIÇO */}
-            <select
-              className="input col-span-5"
-              value={item.servico}
-              onChange={(e) =>
-                atualizarItem(item.id, "servico", e.target.value)
-              }
-            >
-              <option value="">Selecione o serviço</option>
+        {/* ====================== VENDAS ====================== */}
+        <div className="bg-[#020617] border border-white/10 rounded-2xl p-4 space-y-4">
 
-              {SERVICOS.map((grupo) => (
-                <optgroup key={grupo.grupo} label={grupo.grupo}>
-                  {grupo.itens.map((serv) => (
-                    <option key={serv} value={serv}>
-                      {serv}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-
-            {/* QUANTIDADE */}
-            <input
-              type="number"
-              min="1"
-              className="input col-span-2"
-              value={item.quantidade}
-              onChange={(e) =>
-                atualizarItem(item.id, "quantidade", e.target.value)
-              }
-            />
-
-            {/* RECEITA */}
-            <input
-              placeholder="Receita"
-              className="input col-span-3"
-              value={item.receita}
-              onChange={(e) =>
-                atualizarItem(item.id, "receita", e.target.value)
-              }
-            />
+          <div className="flex justify-between items-center">
+            <span>Vendas do Dia</span>
 
             <button
-              type="button"
-              onClick={() => removerItem(item.id)}
-              className="col-span-2 flex justify-center items-center text-red-400"
+              onClick={addVenda}
+              className="bg-white/10 px-3 py-1 rounded-lg text-sm"
             >
-              <Trash2 />
+              + Adicionar Venda
             </button>
           </div>
-        ))}
 
+          {vendas.map((v, vIndex) => (
+            <div key={vIndex} className="bg-[#0b1220] rounded-2xl p-4 space-y-4">
+
+              {/* CPF */}
+              <input
+                placeholder="CPF do Cliente"
+                value={v.cpf}
+                onChange={(e) =>
+                  updateVenda(vIndex, "cpf", e.target.value)
+                }
+                className="w-full bg-[#020617] border border-white/10 rounded-xl p-3"
+              />
+
+              {/* OBS */}
+              <input
+                placeholder="Observações sobre a venda..."
+                value={v.observacao}
+                onChange={(e) =>
+                  updateVenda(vIndex, "observacao", e.target.value)
+                }
+                className="w-full bg-[#020617] border border-white/10 rounded-xl p-3"
+              />
+
+              {/* ITENS */}
+              <div className="space-y-3">
+
+                <div className="flex justify-between text-sm">
+                  <span>Itens da Venda</span>
+
+                  <button
+                    onClick={() => addItem(vIndex)}
+                    className="text-cyan-400"
+                  >
+                    + Adicionar item
+                  </button>
+                </div>
+
+                {v.itens.map((item, iIndex) => (
+                  <div key={iIndex} className="flex gap-3 items-center">
+
+                    {/* SELECT CUSTOM */}
+                    <div className="relative w-[300px]">
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenSelect(
+                            openSelect === `${vIndex}-${iIndex}`
+                              ? null
+                              : `${vIndex}-${iIndex}`
+                          );
+                        }}
+                        className="w-full bg-[#020617] border border-white/10 rounded-xl p-3 text-left flex justify-between items-center"
+                      >
+                        <span>{item.servico || "Selecione"}</span>
+                        <span className="text-slate-400">▼</span>
+                      </button>
+
+                      {openSelect === `${vIndex}-${iIndex}` && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute top-full left-0 mt-2 w-full bg-[#0b1220] border border-white/10 rounded-xl shadow-xl z-50 max-h-72 overflow-y-auto"
+                        >
+
+                          <div className="px-3 py-2 text-xs text-slate-400 border-b">
+                            Pós Total
+                          </div>
+
+                          {[
+                            "Pós Titular",
+                            "Controle",
+                            "Migra Pós",
+                            "Migra Controle",
+                            "Dep Pago",
+                            "Dep Grátis",
+                            "Banda Larga Móvel",
+                          ].map((opcao) => (
+                            <button
+                              key={opcao}
+                              onClick={() => {
+                                updateItem(vIndex, iIndex, "servico", opcao);
+                                setOpenSelect(null);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-cyan-500/10"
+                            >
+                              {opcao}
+                            </button>
+                          ))}
+
+                          <div className="px-3 py-2 text-xs text-slate-400 border-t">
+                            Residencial
+                          </div>
+
+                          {["Virtua", "TV Box", "TV Trade", "Fone Fixo"].map((opcao) => (
+                            <button
+                              key={opcao}
+                              onClick={() => {
+                                updateItem(vIndex, iIndex, "servico", opcao);
+                                setOpenSelect(null);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-cyan-500/10"
+                            >
+                              {opcao}
+                            </button>
+                          ))}
+
+                          <div className="px-3 py-2 text-xs text-slate-400 border-t">
+                            Avançados
+                          </div>
+
+                          {["Upgrade", "Wifi Mesh", "Trocafy", "Seguro", "M-Play"].map((opcao) => (
+                            <button
+                              key={opcao}
+                              onClick={() => {
+                                updateItem(vIndex, iIndex, "servico", opcao);
+                                setOpenSelect(null);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-cyan-500/10"
+                            >
+                              {opcao}
+                            </button>
+                          ))}
+
+                          <div className="px-3 py-2 text-xs text-slate-400 border-t">
+                            Produtos
+                          </div>
+
+                          {["Aparelho", "Acessórios"].map((opcao) => (
+                            <button
+                              key={opcao}
+                              onClick={() => {
+                                updateItem(vIndex, iIndex, "servico", opcao);
+                                setOpenSelect(null);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-cyan-500/10"
+                            >
+                              {opcao}
+                            </button>
+                          ))}
+
+                        </div>
+                      )}
+
+                    </div>
+
+                    <input
+                      type="number"
+                      value={item.quantidade}
+                      onChange={(e) =>
+                        updateItem(vIndex, iIndex, "quantidade", e.target.value)
+                      }
+                      className="w-20 bg-[#020617] border border-white/10 rounded-xl p-3 text-center"
+                    />
+
+                    <input
+                      placeholder="R$"
+                      value={item.receita}
+                      onChange={(e) =>
+                        updateItem(vIndex, iIndex, "receita", e.target.value)
+                      }
+                      className="w-32 bg-[#020617] border border-white/10 rounded-xl p-3"
+                    />
+
+                    <button
+                      onClick={() => removeItem(vIndex, iIndex)}
+                      className="text-red-400"
+                    >
+                      🗑
+                    </button>
+
+                  </div>
+                ))}
+
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* BOTÃO */}
         <button
-          type="button"
-          onClick={adicionarItem}
-          className="text-cyan-400 flex gap-2 items-center"
+          onClick={salvar}
+          className="bg-cyan-500 px-6 py-3 rounded-xl font-semibold"
         >
-          <Plus /> Adicionar item
+          Salvar Venda
         </button>
 
-        <button
-          type="submit"
-          className="bg-cyan-500 px-6 py-3 rounded-xl flex gap-2 items-center"
-        >
-          <Save /> Salvar Venda
-        </button>
-      </form>
-
-      <style>{`
-        .input {
-          background: #020617;
-          border: 1px solid rgba(255,255,255,0.2);
-          padding: 0.6rem;
-          border-radius: 10px;
-          width: 100%;
-        }
-      `}</style>
+      </div>
     </div>
   );
 }
-``

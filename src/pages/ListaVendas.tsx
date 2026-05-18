@@ -1,10 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
+import {
+  Pencil,
+  Trash2,
+  DollarSign,
+  ShoppingBag,
+  Receipt,
+ ChevronDown,
+  Save,
+  X,
+} from "lucide-react";
 
 export default function ListaVendas() {
   const [vendas, setVendas] = useState<any[]>([]);
-  const [expanded, setExpanded] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [expandido, setExpandido] = useState<string | null>(null);
   const [editando, setEditando] = useState<any>(null);
+
+  const [filtroCpf, setFiltroCpf] = useState("");
+  const [filtroServico, setFiltroServico] = useState("");
+  const [filtroData, setFiltroData] = useState("");
 
   const [form, setForm] = useState({
     servico: "",
@@ -12,27 +27,90 @@ export default function ListaVendas() {
     receita: "",
   });
 
-  const carregar = async () => {
-    const { data } = await supabase
+  async function carregarVendas() {
+    setLoading(true);
+
+    const { data, error } = await supabase
       .from("vendas_individuais")
       .select("*")
       .order("data", { ascending: false });
 
-    setVendas(data || []);
-  };
+    if (error) {
+      console.error(error);
+    } else {
+      setVendas(data || []);
+    }
+
+    setLoading(false);
+  }
 
   useEffect(() => {
-    carregar();
+    carregarVendas();
   }, []);
 
-  /* ======================
-     AGRUPAR
-  ====================== */
+  /* =========================
+     FILTROS
+  ========================= */
+  const vendasFiltradas = useMemo(() => {
+    return vendas.filter((v) => {
+      const cpfMatch = String(v.cliente_cpf || "")
+        .toLowerCase()
+        .includes(filtroCpf.toLowerCase());
+
+      const servicoMatch = filtroServico
+        ? v.servico === filtroServico
+        : true;
+
+      const dataVenda = new Date(v.data)
+        .toISOString()
+        .split("T")[0];
+
+      const dataMatch = filtroData
+        ? dataVenda === filtroData
+        : true;
+
+      return cpfMatch && servicoMatch && dataMatch;
+    });
+  }, [vendas, filtroCpf, filtroServico, filtroData]);
+
+  const servicosUnicos = [
+    ...new Set(vendas.map((v) => v.servico)),
+  ];
+
+  /* =========================
+     MÉTRICAS
+  ========================= */
+  const receitaTotal = useMemo(
+    () =>
+      vendasFiltradas.reduce(
+        (acc, venda) => acc + Number(venda.receita || 0),
+        0
+      ),
+    [vendasFiltradas]
+  );
+
+  const quantidadeTotal = useMemo(
+    () =>
+      vendasFiltradas.reduce(
+        (acc, venda) => acc + Number(venda.quantidade || 0),
+        0
+      ),
+    [vendasFiltradas]
+  );
+
+  const ticketMedio = useMemo(() => {
+    if (!vendasFiltradas.length) return 0;
+    return receitaTotal / vendasFiltradas.length;
+  }, [vendasFiltradas, receitaTotal]);
+
+  /* =========================
+     AGRUPAMENTO
+  ========================= */
   const agrupado: any = {};
 
-  vendas.forEach((v) => {
-    const data = new Date(v.data).toLocaleDateString();
-    const cpf = v.cpf || "Sem CPF";
+  vendasFiltradas.forEach((v) => {
+    const data = new Date(v.data).toLocaleDateString("pt-BR");
+    const cpf = v.cliente_cpf || "Sem CPF";
 
     if (!agrupado[data]) agrupado[data] = {};
     if (!agrupado[data][cpf]) agrupado[data][cpf] = [];
@@ -40,148 +118,327 @@ export default function ListaVendas() {
     agrupado[data][cpf].push(v);
   });
 
-  /* ======================
+  /* =========================
      EXCLUIR
-  ====================== */
-  const excluir = async (id: string) => {
-    await supabase.from("vendas_individuais").delete().eq("id", id);
-    carregar();
-  };
+  ========================= */
+  async function excluirVenda(id: string) {
+    const confirmar = window.confirm(
+      "Deseja realmente excluir esta venda?"
+    );
 
-  /* ======================
+    if (!confirmar) return;
+
+    const { error } = await supabase
+      .from("vendas_individuais")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      alert("Erro ao excluir venda");
+      return;
+    }
+
+    carregarVendas();
+  }
+
+  /* =========================
      EDITAR
-  ====================== */
-  const editar = (v: any) => {
-    setEditando(v);
-    setForm({
-      servico: v.servico,
-      quantidade: v.quantidade,
-      receita: v.receita,
-    });
-  };
+  ========================= */
+  function iniciarEdicao(venda: any) {
+    setEditando(venda);
 
-  const salvar = async () => {
-    await supabase
+    setForm({
+      servico: venda.servico,
+      quantidade: String(venda.quantidade),
+      receita: String(venda.receita),
+    });
+  }
+
+  async function salvarEdicao() {
+    if (!editando) return;
+
+    const { error } = await supabase
       .from("vendas_individuais")
       .update({
         servico: form.servico,
         quantidade: Number(form.quantidade),
-        receita: Number(form.receita),
+        receita: Number(
+          String(form.receita).replace(",", ".")
+        ),
       })
       .eq("id", editando.id);
 
+    if (error) {
+      console.error(error);
+      alert("Erro ao salvar edição");
+      return;
+    }
+
     setEditando(null);
-    carregar();
-  };
+    carregarVendas();
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#020617] text-white p-6">
+        Carregando vendas...
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 text-white space-y-6 bg-[#020617] min-h-screen">
+    <div className="min-h-screen bg-[#020617] text-white p-6 space-y-8">
+      {/* HEADER */}
+      <div>
+        <h1 className="text-3xl font-bold">Lista de Vendas</h1>
+        <p className="text-slate-400 mt-1">
+          Gerencie e acompanhe vendas registradas
+        </p>
+      </div>
 
-      <h1 className="text-2xl font-bold">Lista de Vendas</h1>
+      {/* FILTROS */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input
+          placeholder="Buscar CPF"
+          value={filtroCpf}
+          onChange={(e) => setFiltroCpf(e.target.value)}
+          className="input"
+        />
 
-      {Object.keys(agrupado).map((data) => (
-        <div key={data} className="bg-[#0b1220] p-4 rounded-2xl">
+        <select
+          value={filtroServico}
+          onChange={(e) => setFiltroServico(e.target.value)}
+          className="input"
+        >
+          <option value="">Todos serviços</option>
 
-          <h2 className="text-lg mb-3 font-semibold">{data}</h2>
-
-          {Object.keys(agrupado[data]).map((cpf) => (
-            <div key={cpf} className="mb-3">
-
-              <div
-                className="cursor-pointer bg-[#020617] p-3 rounded-xl"
-                onClick={() =>
-                  setExpanded(expanded === cpf ? null : cpf)
-                }
-              >
-                CPF: {cpf}
-              </div>
-
-              {expanded === cpf && (
-                <div className="mt-2 space-y-2">
-
-                  {agrupado[data][cpf].map((v: any) => (
-                    <div
-                      key={v.id}
-                      className="flex justify-between bg-[#111827] p-3 rounded-xl"
-                    >
-                      <div>
-                        <p>{v.servico}</p>
-                        <p className="text-sm text-slate-400">
-                          Qtd: {v.quantidade} • R$ {v.receita}
-                        </p>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => editar(v)}
-                          className="text-yellow-400"
-                        >
-                          Editar
-                        </button>
-
-                        <button
-                          onClick={() => excluir(v.id)}
-                          className="text-red-400"
-                        >
-                          Excluir
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
-                </div>
-              )}
-
-            </div>
+          {servicosUnicos.map((servico) => (
+            <option key={servico} value={servico}>
+              {servico}
+            </option>
           ))}
+        </select>
 
-        </div>
-      ))}
+        <input
+          type="date"
+          value={filtroData}
+          onChange={(e) => setFiltroData(e.target.value)}
+          className="input"
+        />
+
+        <button
+          onClick={() => {
+            setFiltroCpf("");
+            setFiltroServico("");
+            setFiltroData("");
+          }}
+          className="bg-white/5 border border-white/10 rounded-xl px-4"
+        >
+          Limpar filtros
+        </button>
+      </div>
+
+      {/* MÉTRICAS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <Card
+          icon={<DollarSign />}
+          title="Receita Total"
+          value={`R$ ${receitaTotal.toFixed(2)}`}
+        />
+
+        <Card
+          icon={<ShoppingBag />}
+          title="Quantidade"
+          value={String(quantidadeTotal)}
+        />
+
+        <Card
+          icon={<Receipt />}
+          title="Ticket Médio"
+          value={`R$ ${ticketMedio.toFixed(2)}`}
+        />
+      </div>
+
+      <p className="text-sm text-slate-400">
+        {vendasFiltradas.length} resultados encontrados
+      </p>
+
+      {/* LISTA */}
+      <div className="space-y-6">
+        {Object.keys(agrupado).map((data) => (
+          <div
+            key={data}
+            className="bg-[#0b1220] border border-white/10 rounded-3xl p-5"
+          >
+            <h2 className="text-lg font-semibold mb-4">{data}</h2>
+
+            {Object.keys(agrupado[data]).map((cpf) => {
+              const key = `${data}-${cpf}`;
+              const vendasCpf = agrupado[data][cpf];
+
+              const totalCpf = vendasCpf.reduce(
+                (acc: number, item: any) =>
+                  acc + Number(item.receita || 0),
+                0
+              );
+
+              return (
+                <div key={key} className="mb-4">
+                  <button
+                    onClick={() =>
+                      setExpandido(
+                        expandido === key ? null : key
+                      )
+                    }
+                    className="w-full bg-[#020617] border border-white/10 rounded-2xl p-4 flex justify-between items-center hover:bg-white/5 transition"
+                  >
+                    <div>
+                      <p className="font-medium">CPF: {cpf}</p>
+                      <p className="text-sm text-slate-400">
+                        {vendasCpf.length} itens • R$ {totalCpf.toFixed(2)}
+                      </p>
+                    </div>
+
+                    <ChevronDown
+                      className={`transition ${
+                        expandido === key ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {expandido === key && (
+                    <div className="mt-3 space-y-3">
+                      {vendasCpf.map((v: any) => (
+                        <div
+                          key={v.id}
+                          className="bg-[#111827] border border-white/5 rounded-2xl p-4 flex justify-between items-center"
+                        >
+                          <div>
+                            <p className="font-medium">{v.servico}</p>
+                            <p className="text-sm text-slate-400">
+                              Qtd: {v.quantidade} • R${" "}
+                              {Number(v.receita).toFixed(2)}
+                            </p>
+                          </div>
+
+                          <div className="flex gap-3">
+                            <button
+                              onClick={() => iniciarEdicao(v)}
+                              className="text-yellow-400 hover:scale-105 transition"
+                            >
+                              <Pencil size={18} />
+                            </button>
+
+                            <button
+                              onClick={() => excluirVenda(v.id)}
+                              className="text-red-400 hover:scale-105 transition"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
 
       {/* MODAL */}
       {editando && (
-        <div className="fixed inset-0 bg-black/60 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="w-full max-w-md bg-[#0b1220] border border-white/10 rounded-3xl p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="font-bold text-lg">Editar Venda</h2>
 
-          <div className="bg-[#0b1220] p-6 rounded-2xl w-[400px] space-y-4">
-
-            <h2 className="font-bold">Editar Venda</h2>
+              <button onClick={() => setEditando(null)}>
+                <X />
+              </button>
+            </div>
 
             <input
               value={form.servico}
               onChange={(e) =>
-                setForm({ ...form, servico: e.target.value })
+                setForm({
+                  ...form,
+                  servico: e.target.value,
+                })
               }
-              className="w-full p-2 bg-[#020617]"
+              className="input"
+              placeholder="Serviço"
             />
 
             <input
               type="number"
               value={form.quantidade}
               onChange={(e) =>
-                setForm({ ...form, quantidade: e.target.value })
+                setForm({
+                  ...form,
+                  quantidade: e.target.value,
+                })
               }
-              className="w-full p-2 bg-[#020617]"
+              className="input"
+              placeholder="Quantidade"
             />
 
             <input
-              type="number"
               value={form.receita}
               onChange={(e) =>
-                setForm({ ...form, receita: e.target.value })
+                setForm({
+                  ...form,
+                  receita: e.target.value,
+                })
               }
-              className="w-full p-2 bg-[#020617]"
+              className="input"
+              placeholder="Receita"
             />
 
-            <div className="flex gap-3">
-              <button onClick={() => setEditando(null)}>Cancelar</button>
-              <button onClick={salvar}>Salvar</button>
-            </div>
-
+            <button
+              onClick={salvarEdicao}
+              className="w-full bg-cyan-500 hover:bg-cyan-400 transition rounded-xl py-3 font-semibold flex items-center justify-center gap-2"
+            >
+              <Save size={18} />
+              Salvar alterações
+            </button>
           </div>
         </div>
       )}
 
+      <style>{`
+        .input {
+          width: 100%;
+          background: #020617;
+          border: 1px solid rgba(255,255,255,0.1);
+          padding: 12px;
+          border-radius: 14px;
+          outline: none;
+          color: white;
+        }
+      `}</style>
     </div>
   );
 }
-``
+
+function Card({
+  icon,
+  title,
+  value,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+}) {
+  return (
+    <div className="bg-[#0b1220] border border-white/10 rounded-3xl p-5">
+      <div className="flex items-center gap-3 text-cyan-400 mb-3">
+        {icon}
+      </div>
+
+      <p className="text-sm text-slate-400">{title}</p>
+      <h3 className="text-2xl font-bold mt-1">{value}</h3>
+    </div>
+  );
+}

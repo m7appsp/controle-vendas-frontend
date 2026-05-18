@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Pencil, Trash2 } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Wallet,
+  Smartphone,
+  Wifi,
+  MonitorSmartphone,
+  Headphones,
+  Target,
+} from "lucide-react";
 
 const servicosOptions = [
   { value: "receita_total", label: "Receita Total" },
@@ -9,6 +19,22 @@ const servicosOptions = [
   { value: "aparelho", label: "Aparelhos" },
   { value: "acessorios", label: "Acessórios" },
 ];
+
+const labelsServicos: any = {
+  receita_total: "Receita Total",
+  pos_total: "Pós Total",
+  residencial: "Residencial",
+  aparelho: "Aparelhos",
+  acessorios: "Acessórios",
+};
+
+const iconesServicos: any = {
+  receita_total: <Wallet size={18} />,
+  pos_total: <Smartphone size={18} />,
+  residencial: <Wifi size={18} />,
+  aparelho: <MonitorSmartphone size={18} />,
+  acessorios: <Headphones size={18} />,
+};
 
 export default function Configuracoes() {
   const hoje = new Date();
@@ -28,9 +54,7 @@ export default function Configuracoes() {
     ano: hoje.getFullYear(),
   });
 
-  /* ======================
-     CARREGAR METAS
-  ====================== */
+  /* ====================== */
   const carregar = async () => {
     const { data } = await supabase
       .from("metas")
@@ -45,9 +69,6 @@ export default function Configuracoes() {
     carregar();
   }, []);
 
-  /* ======================
-     AGRUPAR POR MÊS
-  ====================== */
   useEffect(() => {
     const group: any = {};
 
@@ -68,9 +89,7 @@ export default function Configuracoes() {
     setAgrupado(group);
   }, [metas]);
 
-  /* ======================
-     SALVAR / UPDATE
-  ====================== */
+  /* ====================== */
   const salvar = async () => {
     if (!form.servico || !form.valor_meta) return;
 
@@ -96,11 +115,9 @@ export default function Configuracoes() {
     carregar();
   };
 
-  /* ======================
-     EDITAR
-  ====================== */
   const editar = (m: any) => {
     setEditando(m);
+
     setForm({
       servico: m.servico,
       tipo_meta: m.tipo_meta,
@@ -108,12 +125,10 @@ export default function Configuracoes() {
       mes: m.mes,
       ano: m.ano,
     });
+
     setOpen(true);
   };
 
-  /* ======================
-     EXCLUIR
-  ====================== */
   const excluir = async (id: string) => {
     await supabase.from("metas").delete().eq("id", id);
     carregar();
@@ -122,6 +137,7 @@ export default function Configuracoes() {
   const fecharModal = () => {
     setOpen(false);
     setEditando(null);
+
     setForm({
       servico: "",
       tipo_meta: "quantidade",
@@ -133,155 +149,159 @@ export default function Configuracoes() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white p-6 space-y-6">
-
       {/* HEADER */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Metas</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Configurações de Metas</h1>
+          <p className="text-slate-400 text-sm mt-1">
+            Gerencie metas comerciais e objetivos mensais
+          </p>
+        </div>
 
         <button
           onClick={() => {
             fecharModal();
             setOpen(true);
           }}
-          className="bg-cyan-500 px-4 py-2 rounded-xl"
+          className="bg-cyan-500 hover:bg-cyan-400 transition px-5 py-3 rounded-xl flex items-center gap-2 font-semibold"
         >
+          <Plus size={18} />
           Nova Meta
         </button>
       </div>
 
-      {/* LISTA AGRUPADA */}
+      {/* CARDS TOPO */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="bg-[#0b1220] border border-white/10 rounded-3xl p-5">
+          <div className="flex items-center gap-3">
+            <Target className="text-cyan-400" />
+            <span className="text-slate-400 text-sm">Metas cadastradas</span>
+          </div>
+
+          <h2 className="text-3xl font-bold mt-4">{metas.length}</h2>
+        </div>
+
+        <div className="bg-[#0b1220] border border-white/10 rounded-3xl p-5">
+          <p className="text-slate-400 text-sm">Mês Atual</p>
+          <h2 className="text-2xl font-bold mt-4 capitalize">
+            {hoje.toLocaleDateString("pt-BR", {
+              month: "long",
+              year: "numeric",
+            })}
+          </h2>
+        </div>
+
+        <div className="bg-[#0b1220] border border-white/10 rounded-3xl p-5">
+          <p className="text-slate-400 text-sm">Última atualização</p>
+          <h2 className="text-2xl font-bold mt-4">
+            {new Date().toLocaleDateString("pt-BR")}
+          </h2>
+        </div>
+      </div>
+
+      {/* LISTA */}
       {Object.keys(agrupado).map((key) => {
         const grupo = agrupado[key];
 
         return (
-          <div key={key} className="bg-[#0b1220] rounded-3xl p-4">
-
-            {/* HEADER DO MÊS */}
+          <div key={key} className="bg-[#0b1220] rounded-3xl p-5 border border-white/10">
             <div
               className="flex justify-between items-center cursor-pointer"
               onClick={() =>
                 setExpandido(expandido === key ? null : key)
               }
             >
-              <h2 className="text-lg font-semibold capitalize">
-                {new Date(grupo.ano, grupo.mes - 1).toLocaleString(
-                  "pt-BR",
-                  { month: "long", year: "numeric" }
-                )}
-              </h2>
+              <div>
+                <h2 className="text-lg font-semibold capitalize">
+                  {new Date(grupo.ano, grupo.mes - 1).toLocaleString(
+                    "pt-BR",
+                    { month: "long", year: "numeric" }
+                  )}
+                </h2>
 
-              <span>
+                <p className="text-xs text-slate-400 mt-1">
+                  {grupo.metas.length} metas cadastradas
+                </p>
+              </div>
+
+              <span className="text-slate-400 text-xl">
                 {expandido === key ? "▲" : "▼"}
               </span>
             </div>
 
-            {/* CONTEÚDO */}
             {expandido === key && (
-              <div className="mt-4 space-y-4">
+              <div className="mt-5 space-y-4">
+                {grupo.metas.map((m: any) => (
+                  <div
+                    key={m.id}
+                    className="bg-[#020617] border border-white/10 rounded-2xl p-5 flex justify-between items-center"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400">
+                        {iconesServicos[m.servico]}
+                      </div>
 
-                <div className="bg-[#020617] border border-white/10 rounded-2xl p-4">
+                      <div>
+                        <p className="font-semibold text-lg">
+                          {labelsServicos[m.servico]}
+                        </p>
 
-                  {/* HEADER INTERNO */}
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold">
-                      Metas Definidas
-                    </h3>
+                        <div className="flex gap-2 mt-2">
+                          <span className="px-2 py-1 rounded-lg text-xs bg-purple-500/10 text-purple-400">
+                            {m.tipo_meta}
+                          </span>
 
-                    <p className="text-xs text-slate-400">
-                      {grupo.metas.length} metas para{" "}
-                      {new Date(grupo.ano, grupo.mes - 1).toLocaleString(
-                        "pt-BR",
-                        { month: "long" }
-                      )}
-                    </p>
-                  </div>
-
-                  {/* LISTA */}
-                  <div className="space-y-3">
-                    {grupo.metas.map((m: any) => (
-                      <div
-                        key={m.id}
-                        className="
-                          flex justify-between items-center
-                          bg-[#020617]
-                          border border-white/10
-                          rounded-xl p-4
-                          hover:bg-white/5 transition
-                        "
-                      >
-                        <div>
-                          <p className="font-semibold">
-                            {m.servico}
-                          </p>
-
-                          <p className="text-sm text-slate-400">
-                            Meta: {m.valor_meta} ({m.tipo_meta})
-                          </p>
-
-                          <p className="text-xs text-slate-500">
-                            Período: Mensal
-                          </p>
-                        </div>
-
-                        <div className="flex gap-2">
-
-                          {/* EDITAR */}
-                          <button
-                            onClick={() => editar(m)}
-                            className="
-                              p-2 rounded-lg
-                              border border-white/10
-                              hover:bg-white/5 transition
-                            "
-                          >
-                            <Pencil size={16} />
-                          </button>
-
-                          {/* EXCLUIR */}
-                          <button
-                            onClick={() => excluir(m.id)}
-                            className="
-                              p-2 rounded-lg
-                              border border-red-500/30
-                              text-red-400
-                              hover:bg-red-500/10 transition
-                            "
-                          >
-                            <Trash2 size={16} />
-                          </button>
-
+                          <span className="px-2 py-1 rounded-lg text-xs bg-cyan-500/10 text-cyan-400">
+                            {m.valor_meta}
+                          </span>
                         </div>
                       </div>
-                    ))}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => editar(m)}
+                        className="p-3 rounded-xl border border-white/10 hover:bg-white/5 transition"
+                      >
+                        <Pencil size={16} />
+                      </button>
+
+                      <button
+                        onClick={() => excluir(m.id)}
+                        className="p-3 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 transition"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
-
-                </div>
-
+                ))}
               </div>
             )}
-
           </div>
         );
       })}
 
       {/* MODAL */}
       {open && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
-
-          <div className="bg-[#0b1220] p-6 rounded-2xl w-[500px] space-y-4">
-
-            <h2 className="text-lg font-semibold">
-              {editando ? "Editar Meta" : "Nova Meta"}
-            </h2>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-[#0b1220] border border-white/10 rounded-3xl p-6 w-[560px] space-y-5">
+            <div>
+              <h2 className="text-xl font-bold">
+                {editando ? "Editar Meta" : "Nova Meta"}
+              </h2>
+              <p className="text-sm text-slate-400 mt-1">
+                Configure metas mensais comerciais
+              </p>
+            </div>
 
             <select
               value={form.servico}
               onChange={(e) =>
                 setForm({ ...form, servico: e.target.value })
               }
-              className="w-full p-2 bg-[#020617] rounded"
+              className="w-full p-3 bg-[#020617] rounded-xl border border-white/10"
             >
-              <option value="">Serviço</option>
+              <option value="">Selecione serviço</option>
               {servicosOptions.map((s) => (
                 <option key={s.value} value={s.value}>
                   {s.label}
@@ -294,7 +314,7 @@ export default function Configuracoes() {
               onChange={(e) =>
                 setForm({ ...form, tipo_meta: e.target.value })
               }
-              className="w-full p-2 bg-[#020617] rounded"
+              className="w-full p-3 bg-[#020617] rounded-xl border border-white/10"
             >
               <option value="quantidade">Quantidade</option>
               <option value="faturamento">Faturamento</option>
@@ -302,48 +322,54 @@ export default function Configuracoes() {
 
             <input
               type="number"
+              placeholder="Valor da meta"
               value={form.valor_meta}
               onChange={(e) =>
                 setForm({ ...form, valor_meta: e.target.value })
               }
-              className="w-full p-2 bg-[#020617] rounded"
+              className="w-full p-3 bg-[#020617] rounded-xl border border-white/10"
             />
 
             {!editando && (
-              <div className="flex gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <input
                   type="number"
                   value={form.mes}
                   onChange={(e) =>
                     setForm({ ...form, mes: Number(e.target.value) })
                   }
-                  className="w-1/2 p-2 bg-[#020617] rounded"
+                  className="p-3 bg-[#020617] rounded-xl border border-white/10"
                 />
+
                 <input
                   type="number"
                   value={form.ano}
                   onChange={(e) =>
                     setForm({ ...form, ano: Number(e.target.value) })
                   }
-                  className="w-1/2 p-2 bg-[#020617] rounded"
+                  className="p-3 bg-[#020617] rounded-xl border border-white/10"
                 />
               </div>
             )}
 
-            <div className="flex gap-3">
-              <button onClick={fecharModal}>
+            <div className="flex justify-end gap-3 pt-3">
+              <button
+                onClick={fecharModal}
+                className="px-5 py-3 rounded-xl border border-white/10"
+              >
                 Cancelar
               </button>
-              <button onClick={salvar}>
-                Salvar
+
+              <button
+                onClick={salvar}
+                className="bg-cyan-500 hover:bg-cyan-400 transition px-5 py-3 rounded-xl font-semibold"
+              >
+                Salvar Meta
               </button>
             </div>
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }

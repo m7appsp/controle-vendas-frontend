@@ -8,7 +8,7 @@ export default function Sidebar() {
     { to: "/", icon: Home, label: "Dashboard" },
     { to: "/relatorios", icon: BarChart3, label: "Relatórios" },
     { to: "/nova-venda", icon: Plus, label: "Nova Venda" },
-    { to: "/vendas", icon: List, label: "Lista de Vendas" }, // ✅ novo
+    { to: "/vendas", icon: List, label: "Lista de Vendas" },
     { to: "/configuracoes", icon: Settings, label: "Configurações" },
   ];
 
@@ -25,33 +25,39 @@ export default function Sidebar() {
         shadow-[0_0_40px_rgba(0,0,0,0.6)]
       "
     >
-
       {/* ======================
-         TOPO PREMIUM (COR AJUSTADA)
+         TOPO PREMIUM
       ====================== */}
       <div className="px-3">
-
-        <div className="
-          bg-gradient-to-b from-[#0ea5e9]/20 to-[#0284c7]/20
-          border border-white/10
-          backdrop-blur-xl
-          rounded-2xl p-4 text-center shadow-lg
-        ">
-
+        <div
+          className="
+            bg-gradient-to-b from-[#0ea5e9]/20 to-[#0284c7]/20
+            border border-white/10
+            backdrop-blur-xl
+            rounded-2xl
+            text-center
+            shadow-lg
+            h-[250px]
+            flex flex-col justify-center
+            px-4
+          "
+        >
           {/* LOJA */}
           <p className="text-xs text-slate-300">
             Loja Barueri
           </p>
 
           {/* AVATAR */}
-          <div className="
-            w-12 h-12 rounded-full
-            mx-auto my-3
-            flex items-center justify-center
-            bg-gradient-to-br from-cyan-400 to-blue-500
-            text-white font-bold
-            shadow-md
-          ">
+          <div
+            className="
+              w-12 h-12 rounded-full
+              mx-auto my-4
+              flex items-center justify-center
+              bg-gradient-to-br from-cyan-400 to-blue-500
+              text-white font-bold
+              shadow-md
+            "
+          >
             MF
           </div>
 
@@ -61,32 +67,33 @@ export default function Sidebar() {
           </p>
 
           {/* MÊS */}
-          <div className="
-            mt-3 text-xs
-            bg-white/10
-            border border-white/10
-            rounded-lg py-2 px-2
-            text-slate-200
-          ">
+          <div
+            className="
+              mt-4 text-xs
+              bg-white/10
+              border border-white/10
+              rounded-lg py-2 px-2
+              text-slate-200
+            "
+          >
             Maio 2026
           </div>
-
         </div>
-
       </div>
 
       {/* ======================
          MENU
       ====================== */}
       <nav className="flex flex-col gap-3 mt-4 px-2">
-
         {menu.map((item, index) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.to;
 
           return (
-            <div key={index} className="relative group/item flex justify-center">
-
+            <div
+              key={index}
+              className="relative group/item flex justify-center"
+            >
               <NavLink
                 to={item.to}
                 className={`
@@ -96,7 +103,6 @@ export default function Sidebar() {
                   ${isActive ? "bg-white/10" : "hover:bg-white/5"}
                 `}
               >
-
                 {/* GLOW ATIVO */}
                 {isActive && (
                   <>
@@ -130,7 +136,6 @@ export default function Sidebar() {
                 >
                   {item.label}
                 </span>
-
               </NavLink>
 
               {/* TOOLTIP */}
@@ -148,14 +153,10 @@ export default function Sidebar() {
               >
                 {item.label}
               </div>
-
             </div>
           );
         })}
-
       </nav>
-
     </div>
   );
 }
-``
