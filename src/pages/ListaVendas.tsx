@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Save,
   X,
-  CalendarDays,
 } from "lucide-react";
 
 export default function ListaVendas() {
@@ -63,13 +62,21 @@ export default function ListaVendas() {
         ? v.servico === filtroServico
         : true;
 
-      const dataMatch = filtroData ? v.data === filtroData : true;
+      const dataVenda = new Date(v.data)
+        .toISOString()
+        .split("T")[0];
+
+      const dataMatch = filtroData
+        ? dataVenda === filtroData
+        : true;
 
       return cpfMatch && servicoMatch && dataMatch;
     });
   }, [vendas, filtroCpf, filtroServico, filtroData]);
 
-  const servicosUnicos = [...new Set(vendas.map((v) => v.servico))];
+  const servicosUnicos = [
+    ...new Set(vendas.map((v) => v.servico)),
+  ];
 
   /* =========================
      MÉTRICAS
@@ -98,12 +105,12 @@ export default function ListaVendas() {
   }, [vendasFiltradas, receitaTotal]);
 
   /* =========================
-     AGRUPAMENTO
+     AGRUPAMENTO ORIGINAL
   ========================= */
   const agrupado: any = {};
 
   vendasFiltradas.forEach((v) => {
-    const data = new Date(v.data + "T12:00:00").toLocaleDateString("pt-BR");
+    const data = new Date(v.data).toLocaleDateString("pt-BR");
     const cpf = v.cliente_cpf || "Sem CPF";
 
     if (!agrupado[data]) agrupado[data] = {};
@@ -184,6 +191,7 @@ export default function ListaVendas() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white p-6 space-y-8">
+      {/* HEADER */}
       <div>
         <h1 className="text-3xl font-bold">Lista de Vendas</h1>
         <p className="text-slate-400 mt-1">
@@ -281,9 +289,11 @@ export default function ListaVendas() {
                 <div key={key} className="mb-4">
                   <button
                     onClick={() =>
-                      setExpandido(expandido === key ? null : key)
+                      setExpandido(
+                        expandido === key ? null : key
+                      )
                     }
-                    className="w-full bg-[#020617] border border-white/10 rounded-2xl p-4 flex justify-between items-center"
+                    className="w-full bg-[#020617] border border-white/10 rounded-2xl p-4 flex justify-between items-center hover:bg-white/5 transition"
                   >
                     <div>
                       <p className="font-medium">CPF: {cpf}</p>
@@ -309,21 +319,22 @@ export default function ListaVendas() {
                           <div>
                             <p className="font-medium">{v.servico}</p>
                             <p className="text-sm text-slate-400">
-                              Qtd: {v.quantidade} • R$ {Number(v.receita).toFixed(2)}
+                              Qtd: {v.quantidade} • R${" "}
+                              {Number(v.receita).toFixed(2)}
                             </p>
                           </div>
 
                           <div className="flex gap-3">
                             <button
                               onClick={() => iniciarEdicao(v)}
-                              className="text-yellow-400"
+                              className="text-yellow-400 hover:scale-105 transition"
                             >
                               <Pencil size={18} />
                             </button>
 
                             <button
                               onClick={() => excluirVenda(v.id)}
-                              className="text-red-400"
+                              className="text-red-400 hover:scale-105 transition"
                             >
                               <Trash2 size={18} />
                             </button>
@@ -354,7 +365,10 @@ export default function ListaVendas() {
             <input
               value={form.servico}
               onChange={(e) =>
-                setForm({ ...form, servico: e.target.value })
+                setForm({
+                  ...form,
+                  servico: e.target.value,
+                })
               }
               className="input"
               placeholder="Serviço"
@@ -364,7 +378,10 @@ export default function ListaVendas() {
               type="number"
               value={form.quantidade}
               onChange={(e) =>
-                setForm({ ...form, quantidade: e.target.value })
+                setForm({
+                  ...form,
+                  quantidade: e.target.value,
+                })
               }
               className="input"
               placeholder="Quantidade"
@@ -373,28 +390,30 @@ export default function ListaVendas() {
             <input
               value={form.receita}
               onChange={(e) =>
-                setForm({ ...form, receita: e.target.value })
+                setForm({
+                  ...form,
+                  receita: e.target.value,
+                })
               }
               className="input"
               placeholder="Receita"
             />
 
-            <div className="relative">
-              <CalendarDays className="absolute left-3 top-3 text-slate-400" size={18} />
-
-              <input
-                type="date"
-                value={form.data}
-                onChange={(e) =>
-                  setForm({ ...form, data: e.target.value })
-                }
-                className="input pl-10"
-              />
-            </div>
+            <input
+              type="date"
+              value={form.data}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  data: e.target.value,
+                })
+              }
+              className="input"
+            />
 
             <button
               onClick={salvarEdicao}
-              className="w-full bg-cyan-500 hover:bg-cyan-400 rounded-xl py-3 font-semibold flex items-center justify-center gap-2"
+              className="w-full bg-cyan-500 hover:bg-cyan-400 transition rounded-xl py-3 font-semibold flex items-center justify-center gap-2"
             >
               <Save size={18} />
               Salvar alterações

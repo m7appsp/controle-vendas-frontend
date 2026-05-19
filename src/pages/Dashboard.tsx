@@ -8,7 +8,6 @@ import {
   Wifi,
   MonitorSmartphone,
   Headphones,
-  Target,
   TrendingUp,
   CalendarDays,
 } from "lucide-react";
@@ -100,12 +99,6 @@ export default function Dashboard() {
     0
   );
 
-  const quantidadeDia = vendasDoDia.reduce(
-    (acc: number, v: any) =>
-      acc + Number(v.quantidade || 0),
-    0
-  );
-
   return (
     <div className="min-h-screen bg-[#020617] text-white p-6 space-y-8">
       {/* HEADER */}
@@ -126,7 +119,7 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* CARDS */}
+      {/* CARDS SUPERIORES */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
         <StatCard
           title="Receita Total"
@@ -192,68 +185,78 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* DIA SELECIONADO */}
-        <div className="bg-white text-slate-900 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-blue-600">
-              <CalendarDays size={18} />
-              <p className="text-sm font-medium uppercase">
-                Dia selecionado
-              </p>
-            </div>
-
-            <h2 className="text-6xl font-bold mt-3">
-              {diaSelecionado.getDate()}
-            </h2>
-
-            <p className="text-sm mt-2 text-slate-500 capitalize">
-              {diaSelecionado.toLocaleDateString(
-                "pt-BR",
-                {
-                  weekday: "long",
-                  month: "long",
-                }
-              )}
+        {/* BLOCO PREMIUM */}
+        <div className="bg-white text-slate-900 rounded-3xl p-5 shadow-xl">
+          <div className="flex items-center gap-2 text-blue-600">
+            <CalendarDays size={18} />
+            <p className="text-sm font-semibold uppercase">
+              Dia selecionado
             </p>
           </div>
 
-          <div className="space-y-4 mt-6">
-            <div className="bg-slate-100 rounded-2xl p-4">
-              <div className="flex items-center gap-2 text-blue-600">
-                <TrendingUp size={16} />
-                <span className="text-xs uppercase font-semibold">
-                  Receita do dia
-                </span>
-              </div>
+          <h2 className="text-5xl font-bold mt-3">
+            {diaSelecionado.getDate()}
+          </h2>
 
-              <p className="text-2xl font-bold mt-2">
-                {formatMoeda(receitaDia)}
-              </p>
+          <p className="text-sm mt-1 text-slate-500 capitalize">
+            {diaSelecionado.toLocaleDateString(
+              "pt-BR",
+              {
+                weekday: "long",
+                month: "long",
+              }
+            )}
+          </p>
+
+          {/* RECEITA DIA */}
+          <div className="bg-slate-100 rounded-2xl p-4 mt-4">
+            <div className="flex items-center gap-2 text-blue-600">
+              <TrendingUp size={16} />
+              <span className="text-xs uppercase font-semibold">
+                Receita do dia
+              </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-100 rounded-2xl p-4">
-                <p className="text-xs text-slate-500">
-                  Itens vendidos
-                </p>
-                <p className="text-xl font-bold mt-1">
-                  {quantidadeDia}
-                </p>
-              </div>
+            <p className="text-2xl font-bold mt-2">
+              {formatMoeda(receitaDia)}
+            </p>
+          </div>
 
-              <div className="bg-slate-100 rounded-2xl p-4">
-                <div className="flex items-center gap-1 text-blue-600">
-                  <Target size={14} />
-                  <p className="text-xs">
-                    Meta/dia
-                  </p>
-                </div>
+          {/* MINI CARDS */}
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <MiniCard
+              title="Meta R$"
+              value={formatMoeda(metaDia)}
+            />
 
-                <p className="text-xl font-bold mt-1">
-                  {formatMoeda(metaDia)}
-                </p>
-              </div>
-            </div>
+            <MiniCard
+              title="Pós"
+              value={`${pos}/120`}
+            />
+
+            <MiniCard
+              title="Resid."
+              value={`${residencial}/80`}
+            />
+
+            <MiniCard
+              title="Aparelhos"
+              value={`${aparelhos}/40`}
+            />
+
+            <MiniCard
+              title="Acess."
+              value={`${acessorios}/60`}
+            />
+
+            <MiniCard
+              title="Meta"
+              value={
+                vaiBaterMeta
+                  ? "ON TRACK"
+                  : "ATENÇÃO"
+              }
+            />
           </div>
         </div>
       </div>
@@ -283,6 +286,25 @@ export default function Dashboard() {
         ticketMedio={ticketMedio}
         rankingServicos={rankingServicos}
       />
+    </div>
+  );
+}
+
+function MiniCard({
+  title,
+  value,
+}: {
+  title: string;
+  value: string;
+}) {
+  return (
+    <div className="bg-slate-100 rounded-xl p-3">
+      <p className="text-[11px] text-slate-500">
+        {title}
+      </p>
+      <p className="text-sm font-bold mt-1">
+        {value}
+      </p>
     </div>
   );
 }
