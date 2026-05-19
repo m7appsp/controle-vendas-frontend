@@ -62,12 +62,23 @@ export default function Dashboard() {
   }
 
   /* ======================
+     FORMATA DATA LOCAL
+     EVITA BUG UTC/FUSO
+  ====================== */
+  const formatarDataLocal = (data: Date) => {
+    return `${data.getFullYear()}-${String(
+      data.getMonth() + 1
+    ).padStart(2, "0")}-${String(
+      data.getDate()
+    ).padStart(2, "0")}`;
+  };
+
+  /* ======================
      FILTRO DIA SELECIONADO
   ====================== */
   const vendasDoDia =
     vendasIndividuais?.filter((v: any) => {
-      const d = new Date(v.data);
-      return d.toDateString() === diaSelecionado.toDateString();
+      return v.data === formatarDataLocal(diaSelecionado);
     }) || [];
 
   const receitaDia = vendasDoDia.reduce(
@@ -159,7 +170,7 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* DIA SELECIONADO PREMIUM */}
+        {/* DIA SELECIONADO */}
         <div className="bg-white text-slate-900 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 text-blue-600">
@@ -197,7 +208,9 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-slate-100 rounded-2xl p-4">
-                <p className="text-xs text-slate-500">Itens vendidos</p>
+                <p className="text-xs text-slate-500">
+                  Itens vendidos
+                </p>
                 <p className="text-xl font-bold mt-1">
                   {quantidadeDia}
                 </p>
@@ -235,7 +248,7 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* INSIGHTS REAIS */}
+      {/* INSIGHTS */}
       <InsightsInteligentes
         insights={insights}
         melhorDia={melhorDia}
