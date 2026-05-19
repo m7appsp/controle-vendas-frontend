@@ -23,8 +23,14 @@ import MetaInsight from "../components/MetaInsight";
 import InsightsInteligentes from "../components/InsightsInteligentes";
 
 export default function Dashboard() {
-  const hoje = new Date();
-  const [diaSelecionado, setDiaSelecionado] = useState<Date>(hoje);
+  const hojeBrasil = new Date(
+    new Date().toLocaleString("en-US", {
+      timeZone: "America/Sao_Paulo",
+    })
+  );
+
+  const [diaSelecionado, setDiaSelecionado] =
+    useState<Date>(hojeBrasil);
 
   const {
     receitaTotal,
@@ -48,46 +54,55 @@ export default function Dashboard() {
     loading,
     erro,
   } = useDashboardData(
-    hoje.getMonth() + 1,
-    hoje.getFullYear(),
+    hojeBrasil.getMonth() + 1,
+    hojeBrasil.getFullYear(),
     diaSelecionado
   );
 
   if (loading) {
-    return <div className="p-6 text-white">Carregando...</div>;
+    return (
+      <div className="p-6 text-white">
+        Carregando...
+      </div>
+    );
   }
 
   if (erro) {
-    return <div className="p-6 text-red-500">{erro}</div>;
+    return (
+      <div className="p-6 text-red-500">
+        {erro}
+      </div>
+    );
   }
-
-  /* ======================
-     FORMATA DATA LOCAL
-     EVITA BUG UTC/FUSO
-  ====================== */
-  const formatarDataLocal = (data: Date) => {
-    return `${data.getFullYear()}-${String(
-      data.getMonth() + 1
-    ).padStart(2, "0")}-${String(
-      data.getDate()
-    ).padStart(2, "0")}`;
-  };
 
   /* ======================
      FILTRO DIA SELECIONADO
   ====================== */
   const vendasDoDia =
     vendasIndividuais?.filter((v: any) => {
-      return v.data === formatarDataLocal(diaSelecionado);
+      const dataVenda = new Date(
+        v.data + "T12:00:00"
+      );
+
+      return (
+        dataVenda.getDate() ===
+          diaSelecionado.getDate() &&
+        dataVenda.getMonth() ===
+          diaSelecionado.getMonth() &&
+        dataVenda.getFullYear() ===
+          diaSelecionado.getFullYear()
+      );
     }) || [];
 
   const receitaDia = vendasDoDia.reduce(
-    (acc: number, v: any) => acc + Number(v.receita || 0),
+    (acc: number, v: any) =>
+      acc + Number(v.receita || 0),
     0
   );
 
   const quantidadeDia = vendasDoDia.reduce(
-    (acc: number, v: any) => acc + Number(v.quantidade || 0),
+    (acc: number, v: any) =>
+      acc + Number(v.quantidade || 0),
     0
   );
 
@@ -95,14 +110,19 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#020617] text-white p-6 space-y-8">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-bold">Painel de Análise</h1>
+        <h1 className="text-3xl font-bold">
+          Painel de Análise
+        </h1>
 
         <p className="text-slate-400 mt-1">
           Resumo Comercial •{" "}
-          {hoje.toLocaleDateString("pt-BR", {
-            month: "long",
-            year: "numeric",
-          })}
+          {hojeBrasil.toLocaleDateString(
+            "pt-BR",
+            {
+              month: "long",
+              year: "numeric",
+            }
+          )}
         </p>
       </div>
 
@@ -166,7 +186,9 @@ export default function Dashboard() {
           <DayPicker
             mode="single"
             selected={diaSelecionado}
-            onSelect={(d) => d && setDiaSelecionado(d)}
+            onSelect={(d) =>
+              d && setDiaSelecionado(d)
+            }
           />
         </div>
 
@@ -185,10 +207,13 @@ export default function Dashboard() {
             </h2>
 
             <p className="text-sm mt-2 text-slate-500 capitalize">
-              {diaSelecionado.toLocaleDateString("pt-BR", {
-                weekday: "long",
-                month: "long",
-              })}
+              {diaSelecionado.toLocaleDateString(
+                "pt-BR",
+                {
+                  weekday: "long",
+                  month: "long",
+                }
+              )}
             </p>
           </div>
 
@@ -219,7 +244,9 @@ export default function Dashboard() {
               <div className="bg-slate-100 rounded-2xl p-4">
                 <div className="flex items-center gap-1 text-blue-600">
                   <Target size={14} />
-                  <p className="text-xs">Meta/dia</p>
+                  <p className="text-xs">
+                    Meta/dia
+                  </p>
                 </div>
 
                 <p className="text-xl font-bold mt-1">
