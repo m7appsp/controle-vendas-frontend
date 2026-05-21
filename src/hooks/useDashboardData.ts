@@ -2,18 +2,29 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 const normalizarTexto = (texto: string = "") =>
-  texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
 const mapearServicoParaGrupo = (servico: string) => {
   const s = normalizarTexto(servico);
 
-  if (["pos titular", "controle", "migra pos", "migra controle"].includes(s))
+  if (
+    [
+      "pos titular",
+      "controle",
+      "migra pos",
+      "migra controle",
+    ].includes(s)
+  )
     return "pos_total";
 
   if (["virtua", "tv box", "tv trade"].includes(s))
     return "residencial";
 
   if (s === "aparelho") return "aparelho";
+
   if (s === "acessorios") return "acessorios";
 
   return "outros";
@@ -53,12 +64,13 @@ export function useDashboardData(
            FILTRAR MÊS/ANO
         ====================== */
         const vendasMes = vendas.filter((v: any) => {
-          const dataVenda = new Date(v.data);
+          if (!v.data) return false;
 
-          return (
-            dataVenda.getMonth() + 1 === mes &&
-            dataVenda.getFullYear() === ano
-          );
+          const partes = v.data.split("-");
+          const anoVenda = Number(partes[0]);
+          const mesVenda = Number(partes[1]);
+
+          return mesVenda === mes && anoVenda === ano;
         });
 
         /* ======================
@@ -80,7 +92,7 @@ export function useDashboardData(
         ====================== */
         let receitaTotal = 0;
         let pos = 0;
-        let residencial = 0;
+        let residential = 0;
         let aparelhos = 0;
         let acessorios = 0;
 
@@ -99,17 +111,15 @@ export function useDashboardData(
           const grupo = mapearServicoParaGrupo(v.servico);
 
           if (grupo === "pos_total") pos += quantidade;
-          if (grupo === "residencial") residencial += quantidade;
+          if (grupo === "residencial") residential += quantidade;
           if (grupo === "aparelho") aparelhos += quantidade;
           if (grupo === "acessorios") acessorios += quantidade;
 
           /* ranking */
-          servicosMap[v.servico] =
-            (servicosMap[v.servico] || 0) + quantidade;
+          servicosMap[v.servico] = (servicosMap[v.servico] || 0) + quantidade;
 
           /* receita por dia */
           const dia = new Date(v.data).toLocaleDateString("pt-BR");
-
           diasMap[dia] = (diasMap[dia] || 0) + receita;
         });
 
@@ -152,25 +162,43 @@ export function useDashboardData(
           vendasMes.length > 0 ? receitaTotal / vendasMes.length : 0;
 
         /* ======================
-           META / PROJEÇÃO
+           META / PROJEÇÃO (CORRIGIDO FUSO HORÁRIO)
         ====================== */
-        const hoje = new Date();
-        const diaAtual = hoje.getDate();
+        const hojeBrasil = new Date(
+          new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+        );
+
+        const diaAtual = hojeBrasil.getDate();
+
         const diasNoMes = new Date(ano, mes, 0).getDate();
 
         const media = receitaTotal / Math.max(diaAtual, 1);
+
         const projecaoFinal = media * diasNoMes;
 
         const falta = metaReceita - receitaTotal;
+
         const diasRestantes = Math.max(diasNoMes - diaAtual, 1);
 
-        const metaDia =
-          falta > 0 ? Math.floor(falta / diasRestantes) : 0;
+        const metaDia = falta > 0 ? Math.floor(falta / diasRestantes) : 0;
 
         const vaiBaterMeta = projecaoFinal >= metaReceita;
 
+        /* ========================================================
+           CÁLCULO DA NECESSIDADE DIÁRIA POR CATEGORIA (NOVO)
+        ======================================================== */
+        const metaPos = getMeta("pos_total");
+        const metaResidencial = getMeta("residencial");
+        const metaAparelhos = getMeta("aparelho");
+        const metaAcessorios = getMeta("acessorios");
+
+        const necessidadePos = Math.max(0, Math.ceil((metaPos - pos) / diasRestantes));
+        const necessidadeResidencial = Math.max(0, Math.ceil((metaResidencial - residential) / diasRestantes));
+        const necessidadeAparelhos = Math.max(0, Math.ceil((metaAparelhos - aparelhos) / diasRestantes));
+        const necessidadeAcessorios = Math.max(0, Math.ceil((metaAcessorios - acessorios) / diasRestantes));
+
         /* ======================
-           INSIGHTS DINÂMICOS
+           INSIGHTS
         ====================== */
         const insights = [];
 
@@ -182,16 +210,14 @@ export function useDashboardData(
         } else {
           insights.push({
             tipo: "alerta",
-            mensagem:
-              "Ritmo atual abaixo do necessário para atingir a meta.",
+            mensagem: "Ritmo atual abaixo do necessário para atingir a meta.",
           });
         }
 
         if (ticketMedio < 150) {
           insights.push({
             tipo: "negativo",
-            mensagem:
-              "Ticket médio abaixo do ideal. Priorize vendas de maior valor.",
+            mensagem: "Ticket médio abaixo do ideal. Priorize vendas de maior valor.",
           });
         }
 
@@ -201,7 +227,7 @@ export function useDashboardData(
         setDados({
           receitaTotal,
           pos,
-          residencial,
+          residencial: residential,
           aparelhos,
           acessorios,
 
@@ -209,6 +235,12 @@ export function useDashboardData(
           projecaoFinal,
           metaDia,
           vaiBaterMeta,
+
+          // Novos dados acoplados ao retorno
+          necessidadePos,
+          necessidadeResidencial,
+          necessidadeAparelhos,
+          necessidadeAcessorios,
 
           insights,
           vendasIndividuais: vendasMes,

@@ -1,168 +1,200 @@
-import {
-  CheckCircle,
-  AlertTriangle,
-  TrendingDown,
-  Trophy,
-  Target,
-  DollarSign,
-  CalendarDays,
-  BarChart3,
-} from "lucide-react";
+import { Trophy, TrendingDown, DollarSign, Target, AlertTriangle, Sparkles } from "lucide-react";
 
-type Props = {
-  insights?: any[];
-  melhorDia?: any;
-  piorDia?: any;
-  ticketMedio?: number;
-  metaDia?: number;
-  rankingServicos?: any[];
-};
+interface ServiceItem {
+  nome: string;
+  quantidade: number;
+}
+
+interface InsightsProps {
+  insights: string[];
+  melhorDia: { data: string; valor: number } | null;
+  piorDia: { data: string; valor: number } | null;
+  ticketMedio: number;
+  rankingServicos: ServiceItem[];
+}
 
 export default function InsightsInteligentes({
-  insights = [],
   melhorDia,
   piorDia,
-  ticketMedio = 0,
-  metaDia = 0,
-  rankingServicos = [],
-}: Props) {
-  if (!insights || insights.length === 0) return null;
+  ticketMedio,
+  rankingServicos,
+}: InsightsProps) {
+  
+  // Função auxiliar para formatar os valores em Moeda Real (R$)
+  const formatMoeda = (valor: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(valor);
+  };
+
+  // Encontra o valor máximo do ranking para calcular a proporção exata das barras
+  const maxQuantidade = rankingServicos && rankingServicos.length > 0 
+    ? Math.max(...rankingServicos.map(s => s.quantidade)) 
+    : 1;
 
   return (
-    <div className="bg-[#0b1220] rounded-3xl border border-white/10 p-6 space-y-6">
-      {/* HEADER */}
-      <div>
-        <h2 className="text-xl font-semibold text-white">
+    <div className="w-full bg-[#070a13]/90 border border-white/5 rounded-3xl p-6 font-sans select-none shadow-2xl">
+      
+      {/* HEADER DO BLOCO */}
+      <div className="mb-6">
+        <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
           Insights Inteligentes
         </h2>
-
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-xs text-slate-400 mt-0.5">
           Performance comercial e alertas automáticos
         </p>
       </div>
 
-      {/* KPIS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="bg-[#020617] rounded-2xl p-4 border border-white/5">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400 text-sm">Melhor dia</span>
-            <Trophy size={18} className="text-yellow-400" />
-          </div>
-
-          <p className="text-xl font-bold mt-3">
-            {melhorDia
-              ? `R$ ${Number(melhorDia.valor).toLocaleString("pt-BR")}`
-              : "R$ 0"}
-          </p>
-
-          <p className="text-xs text-slate-500 mt-1">
-            {melhorDia?.data || "--"}
-          </p>
-        </div>
-
-        <div className="bg-[#020617] rounded-2xl p-4 border border-white/5">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400 text-sm">Pior dia</span>
-            <TrendingDown size={18} className="text-red-400" />
-          </div>
-
-          <p className="text-xl font-bold mt-3">
-            {piorDia
-              ? `R$ ${Number(piorDia.valor).toLocaleString("pt-BR")}`
-              : "R$ 0"}
-          </p>
-
-          <p className="text-xs text-slate-500 mt-1">
-            {piorDia?.data || "--"}
-          </p>
-        </div>
-
-        <div className="bg-[#020617] rounded-2xl p-4 border border-white/5">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400 text-sm">Ticket médio</span>
-            <DollarSign size={18} className="text-cyan-400" />
-          </div>
-
-          <p className="text-xl font-bold mt-3">
-            R$ {Number(ticketMedio).toFixed(0)}
-          </p>
-
-          <p className="text-xs text-slate-500 mt-1">por venda</p>
-        </div>
-
-        <div className="bg-[#020617] rounded-2xl p-4 border border-white/5">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400 text-sm">Meta diária</span>
-            <Target size={18} className="text-green-400" />
-          </div>
-
-          <p className="text-xl font-bold mt-3">
-            R$ {Number(metaDia).toLocaleString("pt-BR")}
-          </p>
-
-          <p className="text-xs text-slate-500 mt-1">necessário/dia</p>
-        </div>
-      </div>
-
-      {/* ALERTAS */}
-      <div className="space-y-3">
-        {insights.map((insight: any, index: number) => (
-          <div
-            key={index}
-            className={`flex items-start gap-3 p-4 rounded-2xl border ${
-              insight.tipo === "positivo"
-                ? "bg-green-500/10 text-green-400 border-green-500/10"
-                : insight.tipo === "alerta"
-                ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/10"
-                : "bg-red-500/10 text-red-400 border-red-500/10"
-            }`}
-          >
-            {insight.tipo === "positivo" && <CheckCircle size={20} />}
-            {insight.tipo === "alerta" && <AlertTriangle size={20} />}
-            {insight.tipo === "negativo" && <TrendingDown size={20} />}
-
-            <p className="text-sm">{insight.mensagem}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* RANKING */}
-      <div className="bg-[#020617] rounded-2xl p-5 border border-white/5">
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 size={18} className="text-cyan-400" />
-          <h3 className="font-semibold">Top serviços vendidos</h3>
-        </div>
-
-        <div className="space-y-3">
-          {rankingServicos.map((item: any, index: number) => (
-            <div key={index}>
-              <div className="flex justify-between text-sm mb-1">
-                <span>{item.nome}</span>
-                <span className="text-slate-400">{item.total}</span>
-              </div>
-
-              <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  className="h-2 bg-cyan-400 rounded-full"
-                  style={{
-                    width: `${
-                      rankingServicos[0]
-                        ? (item.total / rankingServicos[0].total) * 100
-                        : 0
-                    }%`,
-                  }}
-                />
-              </div>
+      {/* 1. ROW DE CARTÕES SUPERIORES */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        
+        {/* Melhor Dia */}
+        <div className="bg-[#121625]/60 border border-white/5 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[11px] font-medium text-slate-400">Melhor dia</p>
+              <h3 className="text-lg font-bold text-white mt-1">
+                {melhorDia ? formatMoeda(melhorDia.valor) : "R$ 0,00"}
+              </h3>
             </div>
-          ))}
+            <Trophy className="text-amber-500 w-5 h-5 drop-shadow-[0_0_4px_rgba(245,158,11,0.3)]" />
+          </div>
+          <p className="text-[10px] text-slate-500 font-medium mt-3">
+            {melhorDia ? melhorDia.data : "--/--/----"}
+          </p>
+        </div>
+
+        {/* Pior Dia */}
+        <div className="bg-[#121625]/60 border border-white/5 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[11px] font-medium text-slate-400">Pior dia</p>
+              <h3 className="text-lg font-bold text-white mt-1">
+                {piorDia ? formatMoeda(piorDia.valor) : "R$ 0,00"}
+              </h3>
+            </div>
+            <TrendingDown className="text-rose-500 w-5 h-5" />
+          </div>
+          <p className="text-[10px] text-slate-500 font-medium mt-3">
+            {piorDia ? piorDia.data : "--/--/----"}
+          </p>
+        </div>
+
+        {/* Ticket Médio */}
+        <div className="bg-[#121625]/60 border border-white/5 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[11px] font-medium text-slate-400">Ticket médio</p>
+              <h3 className="text-lg font-bold text-white mt-1">
+                {formatMoeda(ticketMedio || 0)}
+              </h3>
+            </div>
+            <DollarSign className="text-cyan-400 w-5 h-5" />
+          </div>
+          <p className="text-[10px] text-slate-500 font-medium mt-3">por venda</p>
+        </div>
+
+        {/* Meta Diária */}
+        <div className="bg-[#121625]/60 border border-white/5 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[11px] font-medium text-slate-400">Meta diária</p>
+              <h3 className="text-lg font-bold text-white mt-1">R$ 0,00</h3>
+            </div>
+            <Target className="text-emerald-400 w-5 h-5" />
+          </div>
+          <p className="text-[10px] text-slate-500 font-medium mt-3">necessário/dia</p>
+        </div>
+
+      </div>
+
+      {/* 2. SEÇÃO DE ALERTAS DINÂMICOS */}
+      <div className="space-y-3 mb-6">
+        {/* Alerta de Ritmo */}
+        <div className="bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/20 rounded-xl px-4 py-3 flex items-center gap-3">
+          <AlertTriangle className="text-amber-500 w-4 h-4 flex-shrink-0" />
+          <p className="text-xs font-medium text-amber-400/90 tracking-wide">
+            Ritmo atual abaixo do necessário para atingir a meta.
+          </p>
+        </div>
+
+        {/* Alerta de Ticket Médio */}
+        <div className="bg-gradient-to-r from-rose-500/10 to-transparent border border-rose-500/20 rounded-xl px-4 py-3 flex items-center gap-3">
+          <TrendingDown className="text-rose-500 w-4 h-4 flex-shrink-0" />
+          <p className="text-xs font-medium text-rose-400/90 tracking-wide">
+            Ticket médio abaixo do ideal. Priorize vendas de maior valor.
+          </p>
         </div>
       </div>
 
-      {/* FOOTER */}
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <CalendarDays size={14} />
-        Atualizado com base nas vendas registradas do mês
+      {/* 3. PAINEL DE TOP SERVIÇOS (RANKING COM BARRAS ESPESSAS) */}
+      <div className="bg-[#0b0f19]/60 border border-white/5 rounded-2xl p-5">
+        <div className="flex items-center gap-2 mb-5">
+          <Sparkles className="text-cyan-400 w-4 h-4" />
+          <h4 className="text-sm font-bold text-slate-200 tracking-wide">
+            Top serviços vendidos
+          </h4>
+        </div>
+
+        <div className="space-y-4">
+          {rankingServicos?.map((servico, index) => {
+            // Calcula a largura da barra proporcionalmente ao item mais vendido
+            const percentualLargura = (servico.quantidade / maxQuantidade) * 100;
+
+            return (
+              <div key={index} className="flex items-center gap-4">
+                
+                {/* Nome do Serviço e Medalha */}
+                <div className="w-[180px] flex items-center justify-between bg-[#121625]/40 border border-white/5 rounded-lg px-3 py-1.5 shadow-sm">
+                  <span className="text-xs font-bold text-slate-300 truncate">
+                    {servico.nome}
+                  </span>
+                  
+                  {/* Renderização condicional das medalhas baseada na posição */}
+                  {index === 0 && (
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-b from-amber-300 to-amber-600 text-[10px] font-black text-amber-950 shadow-md">
+                      1º
+                    </span>
+                  )}
+                  {index === 1 && (
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-b from-slate-200 to-slate-400 text-[10px] font-black text-slate-900 shadow-md">
+                      2º
+                    </span>
+                  )}
+                  {index === 2 && (
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-b from-amber-600 to-amber-800 text-[10px] font-black text-amber-100 shadow-md">
+                      3º
+                    </span>
+                  )}
+                </div>
+
+                {/* Container da Barra com a espessura maior e arredondamento (h-3.5 e rounded-full) */}
+                <div className="flex-1 bg-[#121625]/80 rounded-full h-3.5 overflow-hidden p-[2px] border border-white/5">
+                  <div
+                    className="bg-[#24a0ed] h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(36,160,237,0.2)]"
+                    style={{ width: `${percentualLargura}%` }}
+                  />
+                </div>
+
+                {/* Quantidade numérica lateral */}
+                <span className="text-xs font-bold text-slate-400 w-5 text-right">
+                  {servico.quantidade}
+                </span>
+
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      {/* RODAPÉ INFORMATIVO */}
+      <div className="mt-5 pt-3 border-t border-white/5 text-left">
+        <span className="text-[10px] text-slate-500 font-medium tracking-wide">
+          🔄 Atualizado com base nas vendas registradas do mês
+        </span>
+      </div>
+
     </div>
   );
 }
