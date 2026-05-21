@@ -25,27 +25,36 @@ export default function ComparativoMensalChart({
 
   const meta = Math.max(atual, passado) * 1.2;
 
+  // MÁSCARA MANUAL FIXA: Força o ponto como separador e elimina qualquer chance de vírgula
+  const formatarParaPonto = (valor: number) => {
+    const numeroInteiro = Math.round(Number(valor));
+    const valorComPonto = numeroInteiro
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `R$ ${valorComPonto}`;
+  };
+
   return (
     <div className="w-full min-h-[320px] flex flex-col">
       {/* HEADER PREMIUM */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-white">
-            Comparativo do mês
+          <h3 className="text-xl font-bold text-white tracking-tight sm:text-2xl">
+            Comparativo mensal
           </h3>
-
           <p className="text-sm text-slate-400 mt-1">
             Evolução comercial mensal
           </p>
         </div>
 
         <div className="text-right">
-          <p className="text-2xl font-bold text-white">
-            R$ {Number(atual).toLocaleString("pt-BR")}
+          {/* Valor principal com a máscara manual aplicada */}
+          <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            {formatarParaPonto(atual)}
           </p>
 
           <p
-            className={`text-sm font-medium ${
+            className={`text-sm font-medium mt-1 ${
               Number(crescimento) >= 0
                 ? "text-green-400"
                 : "text-red-400"
@@ -57,25 +66,20 @@ export default function ComparativoMensalChart({
         </div>
       </div>
 
-      {/* CHART */}
+      {/* CHART - LINHA PREMIUM COM GLOW DE PREENCHIMENTO */}
       <ResponsiveContainer width="100%" height={280}>
-        <AreaChart data={data}>
+        <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
           <defs>
-            <linearGradient
-              id="colorReceita"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
-              <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.03} />
+            <linearGradient id="colorReceitaPremium" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.25} />
+              <stop offset="95%" stopColor="#0072ff" stopOpacity={0.01} />
             </linearGradient>
           </defs>
 
           <CartesianGrid
             stroke="#334155"
             strokeDasharray="4 4"
+            vertical={false}
             opacity={0.2}
           />
 
@@ -92,31 +96,31 @@ export default function ComparativoMensalChart({
             tick={{ fontSize: 12 }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(value) =>
-              `R$ ${Number(value).toLocaleString("pt-BR")}`
-            }
+            tickFormatter={(value) => formatarParaPonto(value)}
           />
 
+          {/* TOOLTIP CORRIGIDA SEM FUNDO CINZA */}
           <Tooltip
+            cursor={false}
             contentStyle={{
               backgroundColor: "#020617",
-              border: "1px solid rgba(6,182,212,0.3)",
+              border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: "16px",
               color: "white",
               boxShadow: "0 10px 30px rgba(0,0,0,0.45)",
             }}
             formatter={(value: any) => [
-              `R$ ${Number(value).toLocaleString("pt-BR")}`,
+              formatarParaPonto(value),
               "Receita",
             ]}
           />
 
-          {/* META */}
+          {/* META ORIGINAL */}
           <ReferenceLine
             y={meta}
             stroke="#f59e0b"
             strokeDasharray="5 5"
-            opacity={0.6}
+            opacity={0.4}
             label={{
               value: "Meta",
               position: "right",
@@ -125,21 +129,24 @@ export default function ComparativoMensalChart({
             }}
           />
 
+          {/* LINHA COM VISUAL PREMIUM */}
           <Area
-            type="monotone"
+            type="linear"
             dataKey="valor"
-            stroke="#06b6d4"
+            stroke="#00f2fe"
             strokeWidth={4}
-            fill="url(#colorReceita)"
+            fill="url(#colorReceitaPremium)"
+            className="drop-shadow-[0_4px_12px_rgba(0,242,254,0.3)]"
+            
             dot={{
-              r: 5,
-              fill: "#06b6d4",
-              strokeWidth: 2,
-              stroke: "#ffffff",
+              r: 6,
+              fill: "#020617",
+              strokeWidth: 3,
+              stroke: "#00f2fe",
             }}
             activeDot={{
               r: 8,
-              fill: "#06b6d4",
+              fill: "#00f2fe",
               stroke: "#fff",
               strokeWidth: 2,
             }}
