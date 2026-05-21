@@ -7,7 +7,6 @@ import {
   Headphones,
   ChevronLeft,
   ChevronRight,
-  CalendarDays,
 } from "lucide-react";
 
 import { 
@@ -215,77 +214,88 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 3. CARD DIA SELECIONADO */}
-        <div className="bg-[#ffffff] text-slate-900 rounded-[24px] p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] flex flex-col justify-between select-none border border-slate-100">
+        {/* 3. CARD DIA SELECIONADO - ATUALIZADO MILIMETRICAMENTE COM A IMAGEM DE REFERÊNCIA */}
+        <div className="bg-white text-black rounded-[28px] p-6 shadow-[0_20px_40px_rgba(0,0,0,0.12)] flex flex-col justify-between select-none border border-slate-100/80">
           <div>
-            <div className="flex justify-between items-center w-full text-slate-400 font-bold text-[11px] tracking-wide">
-              <div className="flex items-center gap-1.5 uppercase">
-                <CalendarDays size={13} className="text-slate-400" />
+            <div className="flex justify-between items-start w-full text-black font-bold">
+              <div className="flex items-center gap-2 text-sm tracking-wide font-semibold text-slate-900">
+                {/* Ícone de Calendário Linear Nativo SVG */}
+                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
                 DIA SELECIONADO
               </div>
-              <div className="text-right leading-tight">
-                <p className="text-sm font-extrabold text-slate-900 capitalize">
+              <div className="text-right leading-tight flex flex-col items-end">
+                <p className="text-xl font-normal text-slate-900 capitalize">
                   {diaSelecionado.toLocaleDateString("pt-BR", { month: "long" })}
                 </p>
-                <p className="text-[10px] text-slate-400 font-semibold capitalize">
+                <p className="text-base font-normal text-slate-500 capitalize mt-0.5">
                   {diaSelecionado.toLocaleDateString("pt-BR", { weekday: "long" })}
                 </p>
               </div>
             </div>
 
-            <h2 className="text-[64px] font-black text-slate-950 tracking-tighter leading-none mt-2">
+            <h2 className="text-6xl font-bold text-black tracking-tight leading-none mt-2">
               {diaSelecionado.getDate()}
             </h2>
           </div>
 
-          {/* RECEITA DO DIA */}
-          <div className="my-5 bg-gradient-to-b from-[#1b5ecf] via-[#1a59c5] to-[#0f3ea2] rounded-[18px] p-4 text-white shadow-[0_10px_20px_rgba(27,94,207,0.25)] border-t border-b border-amber-300/40 relative overflow-hidden">
-            <span className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-200/60 to-transparent" />
+          {/* RECEITA DO DIA PREMIUM COM BORDA DOURADA E CORTE REFLEXIVO DIAGONAL */}
+          <div className="my-5 bg-gradient-to-br from-[#0a1c3a] via-[#103a7d] to-[#1d4ed8] rounded-2xl p-4 text-white shadow-[0_12px_24px_rgba(16,58,125,0.25)] border-[2.5px] border-[#d4af37]/60 relative overflow-hidden">
+            {/* Efeito da faixa diagonal de reflexo brilhante presente na foto */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent transform translate-x-4 skew-x-12 pointer-events-none" />
             
-            <div className="flex justify-between items-center">
-              <p className="text-[9px] uppercase font-black tracking-widest text-blue-100/90">
+            <div className="flex justify-between items-start relative z-10">
+              <p className="text-xs font-bold tracking-wide text-slate-200/90">
                 RECEITA DO DIA
               </p>
-              <span className="text-[8px] uppercase font-bold text-blue-200/60 tracking-tight">Meta diária</span>
+              <span className="text-[10px] font-normal text-slate-300/80 tracking-tight">Meta diária</span>
             </div>
             
-            <div className="flex items-baseline justify-between mt-1">
-              <h3 className="text-[26px] font-black tracking-tight text-white">{formatMoeda(receitaDia)}</h3>
-              <p className="font-extrabold text-xs text-white/90">{formatMoeda(metaDia)}</p>
+            <div className="flex items-baseline justify-between mt-2 relative z-10">
+              <h3 className="text-2xl font-bold tracking-tight text-white">{formatMoeda(receitaDia)}</h3>
+              <p className="font-bold text-base text-white">{formatMoeda(metaDia)}</p>
             </div>
           </div>
 
-          {/* GRID DE NECESSIDADES */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <div className="bg-white rounded-[14px] p-3 shadow-[0_8px_20px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between">
-              <p className="text-[11px] text-slate-800 font-extrabold">Pós</p>
+          {/* GRID DE NECESSIDADES COM SOMBRAS SUAVES E IDENTIFICAÇÃO IGUAL À FOTO */}
+          <div className="grid grid-cols-2 gap-3.5">
+            {/* Pós */}
+            <div className="bg-white rounded-2xl p-4 shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between min-h-[85px]">
+              <p className="text-sm font-medium text-slate-700">Pós</p>
               <div className="mt-1">
-                <h4 className="text-[22px] font-black text-slate-950 leading-none">{necessidadePos}</h4>
-                <p className="text-[9px] text-slate-400 font-semibold mt-1.5">necessidade</p>
+                <h4 className="text-2xl font-bold text-black leading-none">{necessidadePos}</h4>
+                <p className="text-[10px] text-slate-400 mt-1 font-normal">necessário/dia</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-[14px] p-3 shadow-[0_8px_20px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between">
-              <p className="text-[11px] text-slate-800 font-extrabold">Residencial</p>
+            {/* Residencial */}
+            <div className="bg-white rounded-2xl p-4 shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between min-h-[85px]">
+              <p className="text-sm font-medium text-slate-700">Residencial</p>
               <div className="mt-1">
-                <h4 className="text-[22px] font-black text-slate-950 leading-none">{necessidadeResidencial}</h4>
-                <p className="text-[9px] text-slate-400 font-semibold mt-1.5">necessidade</p>
+                <h4 className="text-2xl font-bold text-black leading-none">{necessidadeResidencial}</h4>
+                <p className="text-[10px] text-slate-400 mt-1 font-normal">necessário/dia</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-[14px] p-3 shadow-[0_8px_20px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between">
-              <p className="text-[11px] text-slate-800 font-extrabold">Aparelhos</p>
+            {/* Aparelhos */}
+            <div className="bg-white rounded-2xl p-4 shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between min-h-[85px]">
+              <p className="text-sm font-medium text-slate-700">Aparelhos</p>
               <div className="mt-1">
-                <h4 className="text-[22px] font-black text-slate-950 leading-none">{necessidadeAparelhos}</h4>
-                <p className="text-[9px] text-slate-400 font-semibold mt-1.5">necessidade</p>
+                <h4 className="text-2xl font-bold text-black leading-none">{necessidadeAparelhos}</h4>
+                <p className="text-[10px] text-slate-400 mt-1 font-normal">necessário/dia</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-[14px] p-3 shadow-[0_8px_20px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between">
-              <p className="text-[11px] text-slate-800 font-extrabold">Acessórios</p>
+            {/* Acessórios */}
+            <div className="bg-white rounded-2xl p-4 shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between min-h-[85px]">
+              <p className="text-sm font-medium text-slate-700">Acessórios</p>
               <div className="mt-1">
-                <h4 className="text-[22px] font-black text-slate-950 leading-none">{necessidadeAcessorios}</h4>
-                <p className="text-[9px] text-slate-400 font-semibold mt-1.5">necessidade</p>
+                <h4 className="text-2xl font-bold text-black leading-none">{necessidadeAcessorios}</h4>
+                <p className="text-[10px] text-slate-400 mt-1 font-normal">necessário/dia</p>
               </div>
             </div>
           </div>
