@@ -58,7 +58,7 @@ export default function Dashboard() {
     necessidadeAcessorios,
 
     insights,
-    melhorDia,
+    mejorDia, // mantido conforme o hook original do usuário
     piorDia,
     ticketMedio,
     rankingServicos,
@@ -107,19 +107,25 @@ export default function Dashboard() {
     return <div className="p-6 text-red-500 bg-[#02040a] min-h-screen flex items-center justify-center font-sans">{erro}</div>;
   }
 
-  /* ======================
-      FILTRO DIA SELECIONADO
-  ====================== */
+  /* ========================================================
+      FILTRO REATIVO DIRETO (Seguro contra erros de Hook)
+     ======================================================== */
   const vendasDoDia =
     vendasIndividuais?.filter((v: any) => {
-      const dataVenda = new Date(v.data + "T12:00:00");
-      return (
-        dataVenda.getDate() === diaSelecionado.getDate() &&
-        dataVenda.getMonth() === diaSelecionado.getMonth() &&
-        dataVenda.getFullYear() === diaSelecionado.getFullYear()
-      );
+      if (!v || !v.data) return false;
+
+      const dataStr = typeof v.data === "string" ? v.data : new Date(v.data).toISOString();
+      const apenasDataVenda = dataStr.split("T")[0]; 
+
+      const ano = diaSelecionado.getFullYear();
+      const mes = String(diaSelecionado.getMonth() + 1).padStart(2, "0");
+      const dia = String(diaSelecionado.getDate()).padStart(2, "0");
+      const apenasDataCalendario = `${ano}-${mes}-${dia}`;
+
+      return apenasDataVenda === apenasDataCalendario;
     }) || [];
 
+  // Calcula a soma em tempo de renderização (zera automaticamente se deletado ou sem vendas)
   const receitaDia = vendasDoDia.reduce(
     (acc: number, v: any) => acc + Number(v.receita || 0),
     0
@@ -151,7 +157,7 @@ export default function Dashboard() {
       {/* BLOCO CENTRAL */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
-        {/* 1. DISTRIBUIÇÃO RECEITA - Sem título externo duplicado */}
+        {/* 1. DISTRIBUIÇÃO RECEITA */}
         <div className="bg-gradient-to-b from-[#0b1329]/70 to-[#040814]/80 backdrop-blur-md rounded-3xl border border-white/10 p-6 shadow-xl flex flex-col justify-between">
           <div className="flex-1 flex items-center justify-center">
             <DistribuicaoReceita pos={pos} residencial={residencial} aparelhos={aparelhos} acessorios={acessorios} />
@@ -214,12 +220,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 3. CARD DIA SELECIONADO - ATUALIZADO MILIMETRICAMENTE COM A IMAGEM DE REFERÊNCIA */}
+        {/* 3. CARD DIA SELECIONADO */}
         <div className="bg-white text-black rounded-[28px] p-6 shadow-[0_20px_40px_rgba(0,0,0,0.12)] flex flex-col justify-between select-none border border-slate-100/80">
           <div>
             <div className="flex justify-between items-start w-full text-black font-bold">
               <div className="flex items-center gap-2 text-sm tracking-wide font-semibold text-slate-900">
-                {/* Ícone de Calendário Linear Nativo SVG */}
                 <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                   <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -243,9 +248,8 @@ export default function Dashboard() {
             </h2>
           </div>
 
-          {/* RECEITA DO DIA PREMIUM COM BORDA DOURADA E CORTE REFLEXIVO DIAGONAL */}
+          {/* RECEITA DO DIA ATUALIZADA */}
           <div className="my-5 bg-gradient-to-br from-[#0a1c3a] via-[#103a7d] to-[#1d4ed8] rounded-2xl p-4 text-white shadow-[0_12px_24px_rgba(16,58,125,0.25)] border-[2.5px] border-[#d4af37]/60 relative overflow-hidden">
-            {/* Efeito da faixa diagonal de reflexo brilhante presente na foto */}
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent transform translate-x-4 skew-x-12 pointer-events-none" />
             
             <div className="flex justify-between items-start relative z-10">
@@ -261,9 +265,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* GRID DE NECESSIDADES COM SOMBRAS SUAVES E IDENTIFICAÇÃO IGUAL À FOTO */}
+          {/* GRID DE NECESSIDADES */}
           <div className="grid grid-cols-2 gap-3.5">
-            {/* Pós */}
             <div className="bg-white rounded-2xl p-4 shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between min-h-[85px]">
               <p className="text-sm font-medium text-slate-700">Pós</p>
               <div className="mt-1">
@@ -272,7 +275,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Residencial */}
             <div className="bg-white rounded-2xl p-4 shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between min-h-[85px]">
               <p className="text-sm font-medium text-slate-700">Residencial</p>
               <div className="mt-1">
@@ -281,7 +283,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Aparelhos */}
             <div className="bg-white rounded-2xl p-4 shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between min-h-[85px]">
               <p className="text-sm font-medium text-slate-700">Aparelhos</p>
               <div className="mt-1">
@@ -290,7 +291,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Acessórios */}
             <div className="bg-white rounded-2xl p-4 shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between min-h-[85px]">
               <p className="text-sm font-medium text-slate-700">Acessórios</p>
               <div className="mt-1">
@@ -316,7 +316,7 @@ export default function Dashboard() {
 
       {/* INSIGHTS */}
       <div className="bg-gradient-to-b from-[#0b1329]/50 to-[#040814]/70 backdrop-blur-md rounded-3xl border border-white/5 p-2 shadow-xl">
-        <InsightsInteligentes insights={insights} melhorDia={melhorDia} piorDia={piorDia} ticketMedio={ticketMedio} rankingServicos={rankingServicos} />
+        <InsightsInteligentes insights={insights} mejorDia={mejorDia} piorDia={piorDia} ticketMedio={ticketMedio} rankingServicos={rankingServicos} />
       </div>
 
     </div>

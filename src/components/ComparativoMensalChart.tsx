@@ -25,7 +25,7 @@ export default function ComparativoMensalChart({
 
   const meta = Math.max(atual, passado) * 1.2;
 
-  // MÁSCARA MANUAL FIXA: Força o ponto como separador e elimina qualquer chance de vírgula
+  // Máscara manual que força o formato R$ 1.814
   const formatarParaPonto = (valor: number) => {
     const numeroInteiro = Math.round(Number(valor));
     const valorComPonto = numeroInteiro
@@ -35,8 +35,8 @@ export default function ComparativoMensalChart({
   };
 
   return (
-    <div className="w-full min-h-[320px] flex flex-col">
-      {/* HEADER PREMIUM */}
+    <div className="w-full min-h-[320px] flex flex-col font-sans select-none">
+      {/* HEADER */}
       <div className="flex justify-between items-start mb-6">
         <div>
           <h3 className="text-xl font-bold text-white tracking-tight sm:text-2xl">
@@ -48,16 +48,12 @@ export default function ComparativoMensalChart({
         </div>
 
         <div className="text-right">
-          {/* Valor principal com a máscara manual aplicada */}
           <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
             {formatarParaPonto(atual)}
           </p>
-
           <p
             className={`text-sm font-medium mt-1 ${
-              Number(crescimento) >= 0
-                ? "text-green-400"
-                : "text-red-400"
+              Number(crescimento) >= 0 ? "text-green-400" : "text-red-400"
             }`}
           >
             {Number(crescimento) >= 0 ? "+" : ""}
@@ -66,7 +62,7 @@ export default function ComparativoMensalChart({
         </div>
       </div>
 
-      {/* CHART - LINHA PREMIUM COM GLOW DE PREENCHIMENTO */}
+      {/* CHART */}
       <ResponsiveContainer width="100%" height={280}>
         <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
           <defs>
@@ -89,6 +85,7 @@ export default function ComparativoMensalChart({
             tick={{ fontSize: 12 }}
             axisLine={false}
             tickLine={false}
+            padding={{ left: 40, right: 40 }} // Garante respiro e alinhamento dos rótulos
           />
 
           <YAxis
@@ -99,7 +96,6 @@ export default function ComparativoMensalChart({
             tickFormatter={(value) => formatarParaPonto(value)}
           />
 
-          {/* TOOLTIP CORRIGIDA SEM FUNDO CINZA */}
           <Tooltip
             cursor={false}
             contentStyle={{
@@ -109,13 +105,9 @@ export default function ComparativoMensalChart({
               color: "white",
               boxShadow: "0 10px 30px rgba(0,0,0,0.45)",
             }}
-            formatter={(value: any) => [
-              formatarParaPonto(value),
-              "Receita",
-            ]}
+            formatter={(value: any) => [formatarParaPonto(value), "Receita"]}
           />
 
-          {/* META ORIGINAL */}
           <ReferenceLine
             y={meta}
             stroke="#f59e0b"
@@ -129,7 +121,6 @@ export default function ComparativoMensalChart({
             }}
           />
 
-          {/* LINHA COM VISUAL PREMIUM */}
           <Area
             type="linear"
             dataKey="valor"
@@ -137,7 +128,6 @@ export default function ComparativoMensalChart({
             strokeWidth={4}
             fill="url(#colorReceitaPremium)"
             className="drop-shadow-[0_4px_12px_rgba(0,242,254,0.3)]"
-            
             dot={{
               r: 6,
               fill: "#020617",
