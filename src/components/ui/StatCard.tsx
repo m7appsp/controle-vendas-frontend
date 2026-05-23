@@ -45,9 +45,10 @@ export default function StatCard({
 
       {/* HEADER */}
       <div className="flex justify-between items-center relative z-10">
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider group-hover:text-slate-300 transition-colors">
+        {/* ATUALIZADO: Título unificado com padrão visual do projeto */}
+        <h3 className="text-base font-semibold text-slate-200 tracking-tight transition-colors group-hover:text-white">
           {title}
-        </span>
+        </h3>
 
         <div className="bg-white/5 p-2.5 rounded-xl text-blue-400 border border-white/5 group-hover:text-cyan-400 group-hover:border-blue-500/20 group-hover:bg-blue-500/5 transition-all duration-300">
           {icon}

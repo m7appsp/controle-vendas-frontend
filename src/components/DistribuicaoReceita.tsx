@@ -35,11 +35,11 @@ export default function DistribuicaoReceita({
   return (
     <div className="h-full w-full flex flex-col justify-between min-h-[250px]">
       
-      {/* TÍTULO E SUBTÍTULO DO BLOCO (Faltavam no original) */}
+      {/* ATUALIZADO: TÍTULO PADRONIZADO COM O APP (Sem duplicidade) */}
       <div className="mb-2">
-        <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200">
-          Distribuição Receita
-        </h4>
+        <h3 className="text-base font-semibold text-slate-200 tracking-tight">
+          Distribuição de Receitas
+        </h3>
         <p className="text-[11px] text-slate-500 font-medium">Participação por segmento comercial</p>
       </div>
 

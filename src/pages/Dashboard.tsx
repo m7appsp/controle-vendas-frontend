@@ -167,9 +167,9 @@ export default function Dashboard() {
         {/* 2. CALENDÁRIO */}
         <div className="bg-gradient-to-b from-[#0b1329]/70 to-[#040814]/80 backdrop-blur-md rounded-3xl border border-white/10 p-6 flex flex-col justify-between min-h-[320px] shadow-xl relative select-none">
           <div className="flex justify-between items-center w-full px-2 mb-4">
-            <h3 className="text-base font-bold text-slate-200 tracking-wide capitalize">
-              {textoMesAnoCalendario}
-            </h3>
+            <h3 className="text-lg font-semibold text-slate-200 tracking-tight capitalize">
+  {textoMesAnoCalendario}
+</h3>
             <div className="flex gap-4 text-slate-400">
               <button type="button" onClick={voltarMes} className="hover:text-white transition-colors p-1">
                 <ChevronLeft size={18} />
@@ -181,11 +181,11 @@ export default function Dashboard() {
           </div>
 
           <div className="w-full flex-1 flex flex-col justify-between">
-            <div className="grid grid-cols-7 text-center font-bold text-xs text-slate-500 mb-3">
-              {diasDaSemanaLabels.map((d, index) => (
-                <div key={`label-${index}`}>{d}</div>
-              ))}
-            </div>
+            <div className="grid grid-cols-7 text-center font-semibold text-xs text-slate-400 tracking-tight mb-3">
+  {diasDaSemanaLabels.map((d, index) => (
+    <div key={`label-${index}`}>{d}</div>
+  ))}
+</div>
 
             <div className="grid grid-cols-7 gap-y-2.5 text-center items-center justify-items-center">
               {espacosVazios.map((_, index) => (
@@ -203,14 +203,14 @@ export default function Dashboard() {
                     type="button"
                     onClick={() => setDiaSelecionado(dataDia)}
                     className={`
-                      w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm outline-none select-none
-                      ${isSelecionado 
-                        ? "bg-[#2563eb] text-white shadow-[0_0_12px_rgba(37,99,235,0.8)] font-bold" 
-                        : isHoje
-                        ? "text-cyan-400 border border-cyan-400/30 font-bold"
-                        : "text-slate-400 hover:text-white"
-                      }
-                    `}
+  w-9 h-9 rounded-full flex items-center justify-center font-semibold text-base outline-none select-none transition-all
+  ${isSelecionado 
+    ? "bg-[#2563eb] text-white shadow-[0_0_12px_rgba(37,99,235,0.8)] font-bold" 
+    : isHoje
+    ? "text-cyan-400 border border-cyan-400/50 font-bold"
+    : "text-slate-300 hover:text-white hover:bg-white/5"
+  }
+`}
                   >
                     {numeroDia}
                   </button>
@@ -224,15 +224,15 @@ export default function Dashboard() {
         <div className="bg-white text-black rounded-[28px] p-6 shadow-[0_20px_40px_rgba(0,0,0,0.12)] flex flex-col justify-between select-none border border-slate-100/80">
           <div>
             <div className="flex justify-between items-start w-full text-black font-bold">
-              <div className="flex items-center gap-2 text-sm tracking-wide font-semibold text-slate-900">
-                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                DIA SELECIONADO
-              </div>
+              <div className="flex items-center gap-2 text-base font-semibold text-slate-800 tracking-tight">
+  <svg className="w-4 h-4 text-slate-800" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+    <line x1="16" y1="2" x2="16" y2="6"></line>
+    <line x1="8" y1="2" x2="8" y2="6"></line>
+    <line x1="3" y1="10" x2="21" y2="10"></line>
+  </svg>
+  Dia Selecionado
+</div>
               <div className="text-right leading-tight flex flex-col items-end">
                 <p className="text-xl font-normal text-slate-900 capitalize">
                   {diaSelecionado.toLocaleDateString("pt-BR", { month: "long" })}
